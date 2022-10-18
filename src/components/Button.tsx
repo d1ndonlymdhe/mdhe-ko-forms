@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from "react";
+import { PropsWithChildren } from "react";
 type buttonProps = {
     id?: string,
     type?: "submit" | "button" | "reset"
