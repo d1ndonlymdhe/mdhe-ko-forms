@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage, NextPageContext } from "next";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "../utils/trpc";
@@ -6,8 +6,8 @@ import Input from "../components/Input"
 import Button from "../components/Button";
 import Error from "../components/Error"
 import Cookies from "js-cookie"
+import { PrismaClient } from "@prisma/client";
 const Home: NextPage = () => {
-
   return (
     <>
       <Head>
@@ -25,13 +25,9 @@ const Home: NextPage = () => {
     </>
   );
 };
-
 type AuthComponentProps = {
   isSignedIn: boolean
 }
-
-
-
 function AuthComponent(props: AuthComponentProps) {
   const [currentForm, setCurrentForm] = useState("login");
   return <div className="grid grid-rows-[9fr_1fr] justify-items-center">
@@ -40,29 +36,68 @@ function AuthComponent(props: AuthComponentProps) {
       {currentForm == "signup" && <SignupForm></SignupForm>}
     </div>
     <div>
-      <Button className="bg-blue-400 mt-2" onClick={() => { setCurrentForm(currentForm == "login" ? "signup" : "login") }}>{currentForm == "login" ? "No Account? Sign Up" : "Already Have an Account? Login"}</Button>
+      <Button className="bg-blue-400" onClick={() => { setCurrentForm(currentForm == "login" ? "signup" : "login") }}>{currentForm == "login" ? "No Account? Sign Up" : "Already Have an Account? Login"}</Button>
     </div>
   </div>
 }
-
 function SignupForm() {
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState("")
+  const signupMutation = trpc.auth.signUp.useMutation({
+    onSuccess: (data) => {
+      const status = data.status
+      const message = data.message
+      if (status == "success") {
+        console.log("Successfully signed up")
+        window.location.reload()
+      } else {
+        if (message == "NO_USERNAME_PASSWORD") {
+          setError("Username and Password not provided")
+        } else if (message == "USER_ALREADY_EXISTS") {
+          setError("Username taken, try again with new credentials")
+          if (usernameRef.current && passwordRef.current && confirmPasswordRef.current) {
+            usernameRef.current.value = ""
+            passwordRef.current.value = ""
+            confirmPasswordRef.current.value = ""
+          }
+        } else {
+          setError("Unknown error occured")
+        }
+      }
+    },
+    onError: () => {
+      setError("Cannot connect to the server")
+    }
+  })
+
+  const handleSignup = () => {
+    if (usernameRef && passwordRef && confirmPasswordRef) {
+      const username = usernameRef.current?.value
+      const password = passwordRef.current?.value
+      const confirmPassword = confirmPasswordRef.current?.value
+      if (username && username !== "" && password && password != "" && confirmPassword && confirmPassword === password) {
+        signupMutation.mutate({ username, password })
+      }
+    }
+  }
   return <div className="border-2 border-solid border-gray-300 p-5 rounded-lg">
-    <form className="grid grid-rows-5">
+    <form className={`grid ${error !== "" ? "grid-rows-[repeat(8, 1fr)]" : "grid-rows-[repeat(7, 1fr)]"}`} onSubmit={(e) => {
+      e.preventDefault()
+      handleSignup()
+    }}>
+      {error !== "" && <Error>{error}</Error>}
       <label htmlFor="username">Username:</label>
       <Input name="username" id="username" type="text" ref={usernameRef}></Input>
       <label htmlFor="password">Password:</label>
       <Input name="password" id="password" type="password" ref={passwordRef} minLength={8}></Input>
       <label htmlFor="confirmPassword">Confirm Password:</label>
       <Input name="confirmPassword" id="confirmPassword" type="password" ref={confirmPasswordRef} minLength={8}></Input>
-      <Button type="submit" className="mt-2">Sign Up</Button>
+      <Button type="submit" className={`mt-2 ${signupMutation.isLoading ? "bg-orange-300" : ""}`}>{signupMutation.isLoading ? "Loading" : "Sign Up"}</Button>
     </form>
   </div>
 }
-
-
 function LoginForm() {
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
@@ -124,34 +159,26 @@ function LoginForm() {
     </div>
   </>
 }
-
-
-
 export default Home;
-
-type TechnologyCardProps = {
-  name: string;
-  description: string;
-  documentation: string;
-};
-
-const TechnologyCard = ({
-  name,
-  description,
-  documentation,
-}: TechnologyCardProps) => {
-  return (
-    <section className="flex flex-col justify-center rounded border-2 border-gray-500 p-6 shadow-xl duration-500 motion-safe:hover:scale-105">
-      <h2 className="text-lg text-gray-700">{name}</h2>
-      <p className="text-sm text-gray-600">{description}</p>
-      <a
-        className="m-auto mt-3 w-fit text-sm text-violet-500 underline decoration-dotted underline-offset-2"
-        href={documentation}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Documentation
-      </a>
-    </section>
-  );
-};
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const token = context.req.cookies.token
+  const prisma = new PrismaClient()
+  if (token) {
+    const tokenInfo = await prisma.userToken.findFirst({ where: { value: token } })
+    if (tokenInfo) {
+      const user = await prisma.user.findFirst({ where: { id: tokenInfo.userId } });
+      if (user) {
+        return {
+          redirect: {
+            permanent: false,
+            destination: `/${user.username}/dashboard`
+          }
+        }
+      }
+    }
+  }
+  return {
+    props: {
+    }
+  }
+}

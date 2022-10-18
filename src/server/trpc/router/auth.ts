@@ -14,19 +14,28 @@ export const authRouter = router({
             const password = input.password;
             const salt = hash(Math.random().toString() + (new Date().getTime().toString()))
             if (username && password) {
-                const user = await ctx.prisma.user.create({
-                    data: {
-                        username: username,
-                        password: hash(password + salt),
-                        salt: salt
+                const user = await ctx.prisma.user.findFirst({ where: { username } })
+                if (user) {
+                    return {
+                        status: "error",
+                        message: "USER_ALREADY_EXISTS"
                     }
-                })
-                return {
-                    status: "success",
+                } else {
+                    const newUser = await ctx.prisma.user.create({
+                        data: {
+                            username: username,
+                            password: hash(password + salt),
+                            salt: salt
+                        }
+                    })
+                    return {
+                        status: "success",
+                    }
                 }
             } else {
                 return {
-                    status: "error"
+                    status: "error",
+                    message: "NO_USERNAME_PASSWORD"
                 }
             }
         })
