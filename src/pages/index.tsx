@@ -102,17 +102,13 @@ function LoginForm() {
   const usernameRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("");
-  const loginMutaion = trpc.auth.logIn.useMutation()
-  useEffect(() => {
-    if (loginMutaion.isSuccess) {
-      const response = loginMutaion.data;
+  const loginMutaion = trpc.auth.logIn.useMutation({
+    onSuccess: (data) => {
+      const response = data
       if (response.status == "success") {
-        console.log("Loggging in");
-        console.log("Token = ", response.message)
         Cookies.set("token", response.message)
+        window.location.reload()
       } else {
-        console.log("error");
-        console.log("Error = ", response.message)
         if (response.message == "NO_USER") {
           setError("No Account Found")
         } else if (response.message == "WRONG_PASSWORD") {
@@ -124,16 +120,16 @@ function LoginForm() {
           setError("Unknown Error Occured")
         }
       }
-    } else if (loginMutaion.isError) {
+    },
+    onError:
+      () => {
       setError("Cannot connect to the server")
     }
-  }, [loginMutaion])
+  })
   const handleLogin = () => {
-    console.log("Handling login")
     if (usernameRef && passwordRef) {
       const username = usernameRef.current?.value
       const password = passwordRef.current?.value
-      console.log(username, password)
       if (username && username !== "" && password && password != "") {
         loginMutaion.mutate({ username, password })
       }
@@ -171,7 +167,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         return {
           redirect: {
             permanent: false,
-            destination: `/dashboard/${user.username}`
+            destination: `/${user.username}`
           }
         }
       }

@@ -1,19 +1,25 @@
 import { GetServerSideProps } from "next";
 import { PrismaClient } from "@prisma/client";
-import { Bars3Icon, UserCircleIcon } from "@heroicons/react/24/solid"
+import { Bars3Icon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/solid"
 import Button from "../../components/Button";
+import Link from "next/link"
 type PageProps = {
     username: string
 }
 
 export default function Dashboard(pageProps: PageProps) {
+    const { username } = pageProps
     return <>
-        <div>
+        <div className="grid grid-rows-[1fr_9fr] h-screen w-screen">
             <TopBar></TopBar>
-            <div>
-                <div>Your Forms</div>
-                <div>List Forms Here</div>
-                <Button>Create New Form</Button>
+            <div className="flex">
+                <div>
+                    <Link href={`./${username}/newform`}>
+                        <a>
+                            <PlusIcon className="w-10 h-10"></PlusIcon>
+                        </a>
+                    </Link>
+                </div>
             </div>
         </div>
     </>
