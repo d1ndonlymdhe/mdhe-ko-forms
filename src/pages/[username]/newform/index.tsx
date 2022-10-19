@@ -34,52 +34,30 @@ export default function FormMaker(props: pageProps) {
     const FormDescriptionRef = useRef<HTMLInputElement>(null)
     return <>
         <TopBar></TopBar>
-        <div className="grid grid-cols-2">
-            <div id="form_designer" className="grid grid-flow-row max-w-[50vw] px-2 py-1">
-                <div id="formDescription" className="grid grid-flow-row">
+        <div className="grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 grid-rows-2">
+            <div id="form_designer" className="grid grid-flow-row px-2 py-1 text-lg">
+                <div id="formDescription" className="grid grid-flow-row bg-purple-500 my-2 mx-2 rounded-lg text-lg text-white py-2 px-2">
                     <label htmlFor="formTitle">Title:</label>
                     <Input id="formTitle" type="text" onChange={(e) => {
                         setFormTitle(FormTitleRef.current?.value!)
                     }
-                    } ref={FormTitleRef}></Input>
+                    } ref={FormTitleRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
                     <label htmlFor="formDescription">Description:</label>
                     <Input id="formDescription" type="text" onChange={(e) => {
                         setFormDescription(FormDescriptionRef.current?.value!)
                     }
-                    } ref={FormDescriptionRef}></Input>
+                    } ref={FormDescriptionRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
                 </div>
-                <div id="formElements">
-
-                </div>
-                <div>
+                <div className="mt-2">
                     <AddFromElement {...{ setFormState, formState }}></AddFromElement>
                 </div>
             </div>
-            <div id="form_demo grid grid-flow-row">
-                <div>
-                    <h1>{formTitle || "Untitled Form"}</h1>
-                </div>
-                <div>
-                    <h2>{formDescription || "Undescribed Form"}</h2>
-                </div>
-                <div>
-                    <form className="grid grid-flow-row">
-                        {
-                            formState.map(form => {
-                                if (form.type == "Text") {
-                                    return <div className="grid grid-flow-row">
-                                        <label htmlFor={form.options.name}>{form.options.label}</label>
-                                        <Input id={form.options.name} type="text" value={form.options.default || ""} required={form.options.required}></Input>
-                                    </div>
-                                }
-                            })
-                        }
-                    </form>
-                </div>
-            </div>
+            <FormDemo {...{ formState, formTitle, formDescription }}></FormDemo>
+
         </div>
     </>
 }
+
 type AddFromElementProps = {
     formState: formEl[]
     setFormState: set<formEl[]>
@@ -90,24 +68,28 @@ function AddFromElement(props: AddFromElementProps) {
     //@ts-ignore
     const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false })
     return <div className="grid">
-        <form className="grid grid-flow-col" onSubmit={(e) => { e.preventDefault() }}>
-            <select onChange={(e) => {
+        <form className="grid grid-flow-row gap-2 bg-purple-500 my-2 mx-2 rounded-lg text-sm text-white px-2 py-2" onSubmit={(e) => {
+            e.preventDefault()
+            setFormState([...formState, { type: currentSelection, options: elementOptions }])
+        }}>
+            <label htmlFor="elementType">Select Element Type To Add: </label>
+            <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
                 //@ts-ignore
                 setCurrentSelection(e.target.value!)
+                console.log(e.target.value)
             }} defaultValue="Text">
-                <option value={"Text"}>Text</option>
-                <option value={"Checkbox"}>Checkbox</option>
-                <option value={"Radio"}>Radio</option>
-                <option value={"Dropdown"}>Dropdown</option>
+                <option className="" value={"Text"}>Text</option>
+                <option className="" value={"Checkbox"}>Checkbox</option>
+                <option className="" value={"Radio"}>Radio</option>
+                <option className="" value={"Dropdown"}>Dropdown</option>
             </select>
             {currentSelection == "Text" && <TextElementOptions {...{ setElementOptions, elementOptions }}> </TextElementOptions>}
-            <Button onClick={() => {
-                setFormState([...formState, { type: currentSelection, options: elementOptions }])
-
-            }}>Add Element</Button>
+            <Button className="mt-2 hover:scale-100" type="submit">Add Element</Button>
         </form>
     </div>
 }
+
+
 type TextElementOptionsProps = {
     elementOptions: formElOptions
     setElementOptions: set<formElOptions>
@@ -118,31 +100,73 @@ function TextElementOptions(props: TextElementOptionsProps) {
         setElementOptions({ ...elementOptions, ...options })
         console.log(elementOptions)
     }
-    return <div>
-
+    return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
-            changeOptions({ name: e?.target.value })
-        }} required={true}></Input>
+            // changeOptions({ name: e?.target.value })
+            console.log(e.target.value)
+            setElementOptions({ ...elementOptions, name: e?.target.value! })
+        }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            changeOptions({ name: e?.target.value })
-        }} required={true}></Input>
+            console.log(e.target.value)
+            changeOptions({ name: e.target.value })
+        }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            changeOptions({ default: e?.target.value })
-        }}></Input>
+            changeOptions({ default: e.target.value })
+        }} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
-        <input id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
-            if (e.target.value == "true") {
-                changeOptions({ required: true })
-            }
-        }}></input>
-        <label htmlFor="inputRequired">Required</label>
+        <div className="grid grid-cols-[1fr_9fr]">
+            <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
+                if (e.target.value == "true") {
+                    changeOptions({ required: true })
+                }
+            }}></input>
+            <label htmlFor="inputRequired">Required</label>
+        </div>
     </div>
 }
+
+type FormDemoProps = {
+    formTitle: string,
+    formDescription: string,
+    formState: formEl[]
+}
+
+
+function FormDemo(props: FormDemoProps) {
+    const { formTitle, formDescription, formState } = props
+    return <div id="form_demo " className=" text-white">
+        <div className="grid grid-flow-row bg-purple-600 m-2 px-2 py-2 text-xl text-white rounded-md">
+            <div className="font-bold text-4xl">
+                <h1>{formTitle || "Untitled Form"}</h1>
+            </div>
+            <div>
+                <h2>{formDescription || "Undescribed Form"}</h2>
+            </div>
+        </div>
+        <div>
+            <form className={`grid grid-flow-row bg-purple-600 m-2 px-2 py-2 text-xl rounded-md ${formState.length == 0 && "hidden"}`}>
+                {
+                    formState.map(form => {
+                        if (form.type == "Text") {
+                            return <div className="grid grid-flow-row" key={uuid()}>
+                                <label htmlFor={form.options.name}>{form.options.label}</label>
+                                <Input id={form.options.name} type="text" defaultValue={form.options.default || ""} required={form.options.required}></Input>
+                            </div>
+                        }
+                    })
+                }
+            </form>
+        </div>
+    </div>
+}
+
+
+
 
 
 

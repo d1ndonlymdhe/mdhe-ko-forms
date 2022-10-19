@@ -89,12 +89,12 @@ function SignupForm() {
     }}>
       {error !== "" && <Error>{error}</Error>}
       <label htmlFor="username">Username:</label>
-      <Input name="username" id="username" type="text" ref={usernameRef}></Input>
+      <Input name="username" id="username" type="text" ref={usernameRef} expand={true}></Input>
       <label htmlFor="password">Password:</label>
-      <Input name="password" id="password" type="password" ref={passwordRef} minLength={8}></Input>
+      <Input name="password" id="password" type="password" ref={passwordRef} minLength={8} expand={true}></Input>
       <label htmlFor="confirmPassword">Confirm Password:</label>
-      <Input name="confirmPassword" id="confirmPassword" type="password" ref={confirmPasswordRef} minLength={8}></Input>
-      <Button type="submit" className={`mt-2 ${signupMutation.isLoading ? "bg-orange-300" : ""}`}>{signupMutation.isLoading ? "Loading" : "Sign Up"}</Button>
+      <Input name="confirmPassword" id="confirmPassword" type="password" ref={confirmPasswordRef} minLength={8} expand={true}></Input>
+      <Button type="submit" className={`mt-2 ${signupMutation.isLoading ? "bg-orange-300" : ""}`} expand={true}>{signupMutation.isLoading ? "Loading" : "Sign Up"}</Button>
     </form>
   </div>
 }
@@ -145,11 +145,11 @@ function LoginForm() {
         <label htmlFor="username">
           Username:
         </label>
-        <Input name="username" type="text" id="username" ref={usernameRef} required={true}></Input>
+        <Input name="username" type="text" id="username" ref={usernameRef} required={true} expand={true}></Input>
         <label htmlFor="password">
           Password:
         </label>
-        <Input name="password" id="password" type={"password"} minLength={8} ref={passwordRef} required={true}></Input>
+        <Input name="password" id="password" type={"password"} minLength={8} ref={passwordRef} required={true} expand={true}></Input>
         <Button id="submit" type="submit" className={`mt-2 ${loginMutaion.isLoading ? "bg-orange-300" : ""}`}>{loginMutaion.isLoading ? "Loading" : "Login"}</Button>
       </form>
     </div>
