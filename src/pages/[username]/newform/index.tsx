@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { GetServerSideProps } from "next"
-import React, { useEffect, useRef, useState } from "react";
+import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
 import Button from "../../../components/Button";
 import TopBar from "../../../components/Topbar";
 import uuid from "react-uuid"
@@ -34,9 +34,9 @@ export default function FormMaker(props: pageProps) {
     const FormDescriptionRef = useRef<HTMLInputElement>(null)
     return <>
         <TopBar></TopBar>
-        <div className="grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 grid-rows-2">
+        <div className="grid lg:grid-cols-2 sm:grid-cols-2  grid-rows-2">
             <div id="form_designer" className="grid grid-flow-row px-2 py-1 text-lg">
-                <div id="formDescription" className="grid grid-flow-row bg-purple-500 my-2 mx-2 rounded-lg text-lg text-white py-2 px-2">
+                <Wrapper id="formDescription">
                     <label htmlFor="formTitle">Title:</label>
                     <Input id="formTitle" type="text" onChange={(e) => {
                         setFormTitle(FormTitleRef.current?.value!)
@@ -47,7 +47,7 @@ export default function FormMaker(props: pageProps) {
                         setFormDescription(FormDescriptionRef.current?.value!)
                     }
                     } ref={FormDescriptionRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
-                </div>
+                </Wrapper>
                 <div className="mt-2">
                     <AddFromElement {...{ setFormState, formState }}></AddFromElement>
                 </div>
@@ -67,28 +67,38 @@ function AddFromElement(props: AddFromElementProps) {
     const [currentSelection, setCurrentSelection] = useState<"Text" | "Radio" | "Dropdown" | "Checkbox">("Text");
     //@ts-ignore
     const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false })
+    const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = useState<string[]>([])
+
     return <div className="grid">
-        <form className="grid grid-flow-row gap-2 bg-purple-500 my-2 mx-2 rounded-lg text-sm text-white px-2 py-2" onSubmit={(e) => {
+        <form className="" onSubmit={(e) => {
             e.preventDefault()
+            //@ts-ignore
+            e.target.reset()
             setFormState([...formState, { type: currentSelection, options: elementOptions }])
+            setCurrentlyEditingElExtraOptions([]);
         }}>
-            <label htmlFor="elementType">Select Element Type To Add: </label>
-            <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
-                //@ts-ignore
-                setCurrentSelection(e.target.value!)
-                console.log(e.target.value)
-            }} defaultValue="Text">
-                <option className="" value={"Text"}>Text</option>
-                <option className="" value={"Checkbox"}>Checkbox</option>
-                <option className="" value={"Radio"}>Radio</option>
-                <option className="" value={"Dropdown"}>Dropdown</option>
-            </select>
-            {currentSelection == "Text" && <TextElementOptions {...{ setElementOptions, elementOptions }}> </TextElementOptions>}
-            <Button className="mt-2 hover:scale-100" type="submit">Add Element</Button>
+            <Wrapper className="text-sm">
+                <label htmlFor="elementType">Select Element Type To Add: </label>
+                <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
+                    setElementOptions({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false })
+                    //@ts-ignore
+                    setCurrentSelection(e.target.value!)
+                    console.log(e.target.value)
+                }} defaultValue="Text">
+                    <option className="" value={"Text"}>Text</option>
+                    <option className="" value={"Checkbox"}>Checkbox</option>
+                    <option className="" value={"Radio"}>Radio</option>
+                    <option className="" value={"Dropdown"}>Dropdown</option>
+                </select>
+                {currentSelection == "Text" && <TextElementOptions {...{ setElementOptions, elementOptions }}> </TextElementOptions>}
+                {currentSelection == "Checkbox" && <CheckBoxElementOptions {...{ setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions }}></CheckBoxElementOptions>}
+                {currentSelection == "Radio" && <RadioElementOptions {...{ setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions }}></RadioElementOptions>}
+                {currentSelection == "Dropdown" && <DropDownElementOptions {...{ setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions }}></DropDownElementOptions>}
+                <Button className="mt-2 hover:scale-100" type="submit">Add Element</Button>
+            </Wrapper>
         </form>
     </div>
 }
-
 
 type TextElementOptionsProps = {
     elementOptions: formElOptions
@@ -96,38 +106,163 @@ type TextElementOptionsProps = {
 }
 function TextElementOptions(props: TextElementOptionsProps) {
     const { setElementOptions, elementOptions } = props;
-    const changeOptions = (options: { default?: string, name?: string, label?: string, required?: boolean }) => {
-        setElementOptions({ ...elementOptions, ...options })
-        console.log(elementOptions)
-    }
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
             // changeOptions({ name: e?.target.value })
-            console.log(e.target.value)
             setElementOptions({ ...elementOptions, name: e?.target.value! })
         }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            console.log(e.target.value)
-            changeOptions({ name: e.target.value })
+            setElementOptions({ ...elementOptions, label: e?.target.value! })
         }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            changeOptions({ default: e.target.value })
+            setElementOptions({ ...elementOptions, default: e.target.value })
         }} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <div className="grid grid-cols-[1fr_9fr]">
             <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
                 if (e.target.value == "true") {
-                    changeOptions({ required: true })
+                    setElementOptions({ ...elementOptions, required: true })
                 }
             }}></input>
             <label htmlFor="inputRequired">Required</label>
         </div>
     </div>
+}
+type CheckBoxElementOptionsProps = TextElementOptionsProps & {
+    currentlyEditingElExtraOptions: string[]
+    setCurrentlyEditingElExtraOptions: set<string[]>
+}
+function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
+    const { setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions } = props;
+    const checkBoxOptionsRef = useRef<HTMLInputElement>(null)
+    // const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = [currenlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions];
+    return <div className="grid grid-flow-row gap-2">
+        <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
+        <Input id="Name" type="text" onChange={(e) => {
+            // changeOptions({ name: e?.target.value })
+            setElementOptions({ ...elementOptions, name: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="label">Label:{"(hint shown to users)"}</label>
+        <Input id="label" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, label: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="defaultValue">Default Value:</label>
+        <Input id="defaultValue" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, default: e.target.value })
+        }}></Input>
+
+        <label htmlFor="checkBoxOptions">Add Options:</label>
+        <div className="grid grid-flow-col gap-2">
+            <Input id="checkBoxOptions" type="text" ref={checkBoxOptionsRef}></Input>
+            <Button onClick={(e) => {
+                if (checkBoxOptionsRef.current && checkBoxOptionsRef.current.value && checkBoxOptionsRef.current.value !== "") {
+                    const temp = Object.assign([], currentlyEditingElExtraOptions);
+                    temp.push(checkBoxOptionsRef.current.value)
+                    setCurrentlyEditingElExtraOptions(temp);
+                    console.log(temp)
+                    console.log(currentlyEditingElExtraOptions, checkBoxOptionsRef.current.value);
+                    setElementOptions({ ...elementOptions, checkboxoptions: temp })
+                    checkBoxOptionsRef.current.value = ""
+                }
+            }} type="button" >Add Option</Button>
+        </div>
+
+        <div className="grid grid-cols-[1fr_9fr]">
+            <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
+                if (e.target.value == "true") {
+                    setElementOptions({ ...elementOptions, required: true })
+                }
+            }}></input>
+            <label htmlFor="inputRequired">Required</label>
+        </div>
+    </div>
+}
+function RadioElementOptions(props: CheckBoxElementOptionsProps) {
+    const { setElementOptions, elementOptions, setCurrentlyEditingElExtraOptions, currentlyEditingElExtraOptions } = props;
+    const radioOptionsRef = useRef<HTMLInputElement>(null)
+    return <div className="grid grid-flow-row gap-2">
+        <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
+        <Input id="Name" type="text" onChange={(e) => {
+            // changeOptions({ name: e?.target.value })
+            setElementOptions({ ...elementOptions, name: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="label">Label:{"(hint shown to users)"}</label>
+        <Input id="label" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, label: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="defaultValue">Default Value:</label>
+        <Input id="defaultValue" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, default: e.target.value })
+        }}></Input>
+
+        <label htmlFor="checkBoxOptions">Add Options:</label>
+        <div className="grid grid-flow-col gap-2">
+            <Input id="checkBoxOptions" type="text" ref={radioOptionsRef}></Input>
+            <Button onClick={() => {
+                if (radioOptionsRef.current && radioOptionsRef.current.value && radioOptionsRef.current.value !== "") {
+                    const temp = Object.assign([], currentlyEditingElExtraOptions);
+                    temp.push(radioOptionsRef.current.value)
+                    setCurrentlyEditingElExtraOptions(temp)
+                    setElementOptions({ ...elementOptions, radioOptions: temp })
+                    radioOptionsRef.current.value = ""
+                }
+            }} type="button" >Add Option</Button>
+        </div>
+    </div>
+}
+function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
+    const { setElementOptions, elementOptions, setCurrentlyEditingElExtraOptions, currentlyEditingElExtraOptions } = props;
+    const dropDownOptionsRef = useRef<HTMLInputElement>(null)
+    return <div className="grid grid-flow-row gap-2">
+        <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
+        <Input id="Name" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, name: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="label">Label:{"(hint shown to users)"}</label>
+        <Input id="label" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, label: e?.target.value! })
+        }} required={true}></Input>
+
+        <label htmlFor="defaultValue">Default Value:</label>
+        <Input id="defaultValue" type="text" onChange={(e) => {
+            setElementOptions({ ...elementOptions, default: e.target.value })
+        }}></Input>
+
+        <label htmlFor="checkBoxOptions">Add Options:</label>
+        <div className="grid grid-flow-col gap-2">
+            <Input id="checkBoxOptions" type="text" ref={dropDownOptionsRef}></Input>
+            <Button onClick={() => {
+                if (dropDownOptionsRef.current && dropDownOptionsRef.current.value && dropDownOptionsRef.current.value !== "") {
+                    const temp = Object.assign([], currentlyEditingElExtraOptions);
+                    temp.push(dropDownOptionsRef.current.value)
+                    setCurrentlyEditingElExtraOptions(temp)
+                    setElementOptions({ ...elementOptions, dropdownOptions: temp })
+                    dropDownOptionsRef.current.value = ""
+                }
+            }} type="button">Add Option</Button>
+        </div>
+    </div>
+}
+
+
+type WrapperProps = {
+    className?: string
+    id?: string
+}
+function Wrapper(props: PropsWithChildren<WrapperProps>) {
+    return <div className={`grid grid-flow-row bg-purple-500 my-2 mx-2 rounded-lg text-lg text-white py-2 px-2 ${props.className}`} id={props.id || ""}>
+        {props.children}
+    </div >
 }
 
 type FormDemoProps = {
@@ -140,26 +275,65 @@ type FormDemoProps = {
 function FormDemo(props: FormDemoProps) {
     const { formTitle, formDescription, formState } = props
     return <div id="form_demo " className=" text-white">
-        <div className="grid grid-flow-row bg-purple-600 m-2 px-2 py-2 text-xl text-white rounded-md">
+        <Wrapper key={uuid()}>
             <div className="font-bold text-4xl">
                 <h1>{formTitle || "Untitled Form"}</h1>
             </div>
             <div>
                 <h2>{formDescription || "Undescribed Form"}</h2>
             </div>
-        </div>
+        </Wrapper>
         <div>
-            <form className={`grid grid-flow-row bg-purple-600 m-2 px-2 py-2 text-xl rounded-md ${formState.length == 0 && "hidden"}`}>
-                {
-                    formState.map(form => {
-                        if (form.type == "Text") {
-                            return <div className="grid grid-flow-row" key={uuid()}>
-                                <label htmlFor={form.options.name}>{form.options.label}</label>
-                                <Input id={form.options.name} type="text" defaultValue={form.options.default || ""} required={form.options.required}></Input>
-                            </div>
-                        }
-                    })
-                }
+            <form className={`${formState.length == 0 && "hidden"}`}>
+                <Wrapper key={uuid()}>
+                    {
+
+                        formState.map(element => {
+                            if (element.type == "Text") {
+                                return <div className="grid grid-flow-row gap-2" key={uuid()}>
+                                    <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                    <Input id={element.options.name} type="text" defaultValue={element.options.default || ""} required={element.options.required}></Input>
+                                </div>
+                            } else if (element.type == "Checkbox") {
+                                return <div className="grid grid-flow-row" key={uuid()}>
+                                    <p className="sm:text-3xl text-xl font-bold">{element.options.label}</p>
+                                    {
+                                        element.options.checkboxoptions && element.options.checkboxoptions.map(option => {
+                                            return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+                                                <input id={option} type={"checkbox"} name={element.options.name} value={option}></input>
+                                                <label htmlFor={option}>{option}</label>
+                                            </div>
+                                        })
+                                    }
+                                </div>
+                            } else if (element.type == "Radio") {
+                                return <div className="grid grid-flow-row gap-2" key={uuid()}>
+                                    <legend className="sm:text-3xl text-xl font-bold">{element.options.label}</legend>
+                                    {
+                                        element.options.radioOptions && element.options.radioOptions.map((option, index) => {
+                                            return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+                                                <input id={`${option}_${index}`} type="radio" name={element.options.name} required={element.options.required} value={option}></input>
+                                                <label htmlFor={`${option}_${index}`}>{option}</label>
+                                            </div>
+                                        })
+                                    }
+                                </div>
+                            } else if (element.type == "Dropdown") {
+                                return <div className="grid grid-flow-row gap-2" key={uuid()}>
+                                    <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                    <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1">
+                                        {element.options.dropdownOptions && element.options.dropdownOptions.map((option, index) => {
+                                            return <option key={uuid()} value={option}>
+                                                {option}
+                                            </option>
+                                        })}
+                                    </select>
+                                </div>
+                            }
+
+                        })
+                    }
+                </Wrapper>
             </form>
         </div>
     </div>

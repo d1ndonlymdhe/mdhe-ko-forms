@@ -1,10 +1,10 @@
-import { PropsWithChildren } from "react";
+import { MouseEvent, PropsWithChildren } from "react";
 type buttonProps = {
     id?: string,
     type?: "submit" | "button" | "reset"
     ,
     className?: string,
-    onClick?: () => void,
+    onClick?: (e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>) => void,
     expand?: boolean
 }
 const Button = (props: PropsWithChildren<buttonProps>) => {
@@ -12,7 +12,7 @@ const Button = (props: PropsWithChildren<buttonProps>) => {
     return <button type={type} id={id || ""} className={`px-2 py-1 bg-violet-700 font-bold text-white rounded-md ${expand && "hover:scale-110"} duration-100 ${className}`} onClick={(e) => {
         e.stopPropagation();
         if (onClick) {
-            onClick()
+            onClick(e)
         }
     }}>{props.children}</button>
 }
