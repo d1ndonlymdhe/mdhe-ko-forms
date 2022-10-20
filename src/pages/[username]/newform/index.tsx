@@ -299,10 +299,7 @@ function FormDemo(props: FormDemoProps) {
                                     <p className="sm:text-3xl text-xl font-bold">{element.options.label}</p>
                                     {
                                         element.options.checkboxoptions && element.options.checkboxoptions.map(option => {
-                                            return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
-                                                <input id={option} type={"checkbox"} name={element.options.name} value={option}></input>
-                                                <label htmlFor={option}>{option}</label>
-                                            </div>
+                                            return <CustomFormCheckBox {...{ option, element }} key={uuid()}></CustomFormCheckBox>
                                         })
                                     }
                                 </div>
@@ -311,23 +308,14 @@ function FormDemo(props: FormDemoProps) {
                                     <legend className="sm:text-3xl text-xl font-bold">{element.options.label}</legend>
                                     {
                                         element.options.radioOptions && element.options.radioOptions.map((option, index) => {
-                                            return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
-                                                <input id={`${option}_${index}`} type="radio" name={element.options.name} required={element.options.required} value={option}></input>
-                                                <label htmlFor={`${option}_${index}`}>{option}</label>
-                                            </div>
+                                            return <CustomFormRadio {...{ element, option, index }} key={uuid()}></CustomFormRadio>
                                         })
                                     }
                                 </div>
                             } else if (element.type == "Dropdown") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
                                     <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
-                                    <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1">
-                                        {element.options.dropdownOptions && element.options.dropdownOptions.map((option, index) => {
-                                            return <option key={uuid()} value={option}>
-                                                {option}
-                                            </option>
-                                        })}
-                                    </select>
+                                    <CustomFormDropdown {...{ element }}></CustomFormDropdown>
                                 </div>
                             }
 
@@ -339,10 +327,44 @@ function FormDemo(props: FormDemoProps) {
     </div>
 }
 
-
-
-
-
+type CustomFormCheckBoxProps = {
+    element: formEl,
+    option: string,
+    index?: number
+}
+function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
+    const { element, option, index } = props
+    const [checked, setChecked] = useState(element.options.default == option)
+    return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+        <input id={option} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
+            setChecked(!checked)
+        }}></input>
+        <label htmlFor={option}>{option}</label>
+    </div>
+}
+function CustomFormRadio(props: CustomFormCheckBoxProps) {
+    const { element, option, index } = props;
+    const [checked, setChecked] = useState(element.options.default == option)
+    return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+        <input id={`${option}_${index}`} type="radio" name={element.options.name} checked={checked} required={element.options.required} value={option} onChange={() => {
+            setChecked(!checked)
+        }}></input>
+        <label htmlFor={`${option}_${index}`}>{option}</label>
+    </div>
+}
+type CustomFormDropdownProps = {
+    element: formEl,
+}
+function CustomFormDropdown(props: CustomFormDropdownProps) {
+    const { element } = props;
+    return <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1" defaultValue={element.options.default || ""}>
+        {element.options.dropdownOptions && element.options.dropdownOptions.map((option, index) => {
+            return <option key={uuid()} value={option}>
+                {option}
+            </option>
+        })}
+    </select>
+}
 
 
 export const getServerSideProps: GetServerSideProps<any, { username: string }> = async (context) => {
