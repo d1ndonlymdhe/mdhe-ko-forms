@@ -5,6 +5,7 @@ import Button from "../../../components/Button";
 import TopBar from "../../../components/Topbar";
 import uuid from "react-uuid"
 import Input from "../../../components/Input";
+import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 type set<T> = React.Dispatch<React.SetStateAction<T>>
 
@@ -23,6 +24,7 @@ type formElOptions = {
     checkboxoptions?: string[]
     default?: string
     required?: boolean
+    key: string;
 }
 
 export default function FormMaker(props: pageProps) {
@@ -52,7 +54,7 @@ export default function FormMaker(props: pageProps) {
                     <AddFromElement {...{ setFormState, formState }}></AddFromElement>
                 </div>
             </div>
-            <FormDemo {...{ formState, formTitle, formDescription }}></FormDemo>
+            <FormDemo {...{ formState, formTitle, formDescription, setFormState }}></FormDemo>
 
         </div>
     </>
@@ -66,7 +68,7 @@ function AddFromElement(props: AddFromElementProps) {
     const { formState, setFormState } = props
     const [currentSelection, setCurrentSelection] = useState<"Text" | "Radio" | "Dropdown" | "Checkbox">("Text");
     //@ts-ignore
-    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false })
+    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false, key: uuid() })
     const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = useState<string[]>([])
 
     return <div className="grid">
@@ -75,12 +77,13 @@ function AddFromElement(props: AddFromElementProps) {
             //@ts-ignore
             e.target.reset()
             setFormState([...formState, { type: currentSelection, options: elementOptions }])
+            setCurrentSelection("Text")
             setCurrentlyEditingElExtraOptions([]);
         }}>
             <Wrapper className="text-sm">
                 <label htmlFor="elementType">Select Element Type To Add: </label>
                 <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
-                    setElementOptions({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false })
+                    setElementOptions({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false, key: uuid() })
                     //@ts-ignore
                     setCurrentSelection(e.target.value!)
                     console.log(e.target.value)
@@ -269,11 +272,37 @@ type FormDemoProps = {
     formTitle: string,
     formDescription: string,
     formState: formEl[]
+    setFormState: set<formEl[]>
 }
 
 
 function FormDemo(props: FormDemoProps) {
-    const { formTitle, formDescription, formState } = props
+    const { formTitle, formDescription, formState, setFormState } = props
+    type formElControlsProps = {
+        formState: formEl[]
+        element: formEl
+        setFormState: set<formEl[]>
+    }
+    const FormElControls = (props: formElControlsProps) => {
+        const { element, formState, setFormState } = props
+        return <div className="grid grid-flow-col w-fit gap-2">
+            <ArrowUpIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+                let temp = [...formState]
+                temp = moveElUpInArr(element, formState)
+                setFormState(temp)
+            }}></ArrowUpIcon>
+            <ArrowDownIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+                let temp = [...formState]
+                temp = moveElDownInArr(element, formState)
+                setFormState(temp)
+            }}></ArrowDownIcon>
+            <TrashIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+                let temp = [...formState]
+                temp = removeFromArr(element, formState)
+                setFormState(temp)
+            }}></TrashIcon>
+        </div>
+    }
     return <div id="form_demo " className=" text-white">
         <Wrapper key={uuid()}>
             <div className="font-bold text-4xl">
@@ -287,16 +316,22 @@ function FormDemo(props: FormDemoProps) {
             <form className={`${formState.length == 0 && "hidden"}`}>
                 <Wrapper key={uuid()}>
                     {
-
                         formState.map(element => {
                             if (element.type == "Text") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
-                                    <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                        <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold w-fit">{element.options.label}</label>
+                                        <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+
+                                    </div>
                                     <Input id={element.options.name} type="text" defaultValue={element.options.default || ""} required={element.options.required}></Input>
                                 </div>
                             } else if (element.type == "Checkbox") {
                                 return <div className="grid grid-flow-row" key={uuid()}>
-                                    <p className="sm:text-3xl text-xl font-bold">{element.options.label}</p>
+                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                        <p className="sm:text-3xl text-xl font-bold">{element.options.label}</p>
+                                        <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+                                    </div>
                                     {
                                         element.options.checkboxoptions && element.options.checkboxoptions.map(option => {
                                             return <CustomFormCheckBox {...{ option, element }} key={uuid()}></CustomFormCheckBox>
@@ -305,7 +340,12 @@ function FormDemo(props: FormDemoProps) {
                                 </div>
                             } else if (element.type == "Radio") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
-                                    <legend className="sm:text-3xl text-xl font-bold">{element.options.label}</legend>
+                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+
+                                        <legend className="sm:text-3xl text-xl font-bold">{element.options.label}</legend>
+                                        <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+
+                                    </div>
                                     {
                                         element.options.radioOptions && element.options.radioOptions.map((option, index) => {
                                             return <CustomFormRadio {...{ element, option, index }} key={uuid()}></CustomFormRadio>
@@ -314,11 +354,13 @@ function FormDemo(props: FormDemoProps) {
                                 </div>
                             } else if (element.type == "Dropdown") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
-                                    <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                        <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                        <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+                                    </div>
                                     <CustomFormDropdown {...{ element }}></CustomFormDropdown>
                                 </div>
                             }
-
                         })
                     }
                 </Wrapper>
@@ -405,4 +447,72 @@ export const getServerSideProps: GetServerSideProps<any, { username: string }> =
             }
         }
     }
+}
+
+
+function moveElUpInArr<T>(el: T, arr: T[]) {
+    const retArr: T[] = []
+    let indexOfEl = -1
+    for (let i = 0; i < arr.length; i++) {
+        if (JSON.stringify(el) === JSON.stringify(arr[i])) {
+            indexOfEl = i;
+            break;
+        }
+    }
+    if (indexOfEl !== -1 && indexOfEl !== 0) {
+        for (let i = 0; i < arr.length; i++) {
+            if (i == indexOfEl - 1) {
+                retArr.push(el)
+            } else if (i == indexOfEl) {
+                retArr.push(arr[i - 1]!)
+            }
+            else {
+                retArr.push(arr[i]!)
+            }
+        }
+        return retArr;
+    }
+    return arr;
+}
+function moveElDownInArr<T>(el: T, arr: T[]) {
+    const retArr: T[] = []
+    let indexOfEl = -1;
+    for (let i = 0; i < arr.length; i++) {
+        if (JSON.stringify(el) === JSON.stringify(arr[i])) {
+            indexOfEl = i;
+            break;
+        }
+    }
+    if (indexOfEl !== -1 && indexOfEl !== arr.length - 1) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            if (i == indexOfEl + 1) {
+                retArr[i] = el;
+            } else if (i == indexOfEl) {
+                retArr[i] = arr[i + 1]!
+            } else {
+                retArr[i] = arr[i]!
+            }
+        }
+        return retArr
+    }
+    return arr
+}
+function removeFromArr<T>(el: T, arr: T[]) {
+    const retArr: T[] = []
+    let indexOfEl = -1;
+    for (let i = 0; i < arr.length; i++) {
+        if (JSON.stringify(el) === JSON.stringify(arr[i])) {
+            indexOfEl = i;
+            break;
+        }
+    }
+    if (indexOfEl !== -1) {
+        for (let i = 0; i < arr.length; i++) {
+            if (i !== indexOfEl) {
+                retArr.push(arr[i]!)
+            }
+        }
+        return retArr;
+    }
+    return arr;
 }
