@@ -19,9 +19,9 @@ type formEl = {
 type formElOptions = {
     name: string,
     label: string,
-    radioOptions?: string[]
-    dropdownOptions?: string[]
-    checkboxoptions?: string[]
+    elOptions?: string[]
+    // elOptions?: string[]
+    // elOptions?: string[]
     default?: string
     required?: boolean
     key: string;
@@ -68,7 +68,7 @@ function AddFromElement(props: AddFromElementProps) {
     const { formState, setFormState } = props
     const [currentSelection, setCurrentSelection] = useState<"Text" | "Radio" | "Dropdown" | "Checkbox">("Text");
     //@ts-ignore
-    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false, key: uuid() })
+    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", elOptions: [], default: "", elOptions: [], elOptions: [], required: false, key: uuid() })
     const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = useState<string[]>([])
 
     return <div className="grid">
@@ -83,7 +83,7 @@ function AddFromElement(props: AddFromElementProps) {
             <Wrapper className="text-sm">
                 <label htmlFor="elementType">Select Element Type To Add: </label>
                 <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
-                    setElementOptions({ label: "Add a label", name: "random_name", checkboxoptions: [], default: "", dropdownOptions: [], radioOptions: [], required: false, key: uuid() })
+                    setElementOptions({ label: "Add a label", name: "random_name", elOptions: [], default: "", required: false, key: uuid() })
                     //@ts-ignore
                     setCurrentSelection(e.target.value!)
                     console.log(e.target.value)
@@ -171,7 +171,7 @@ function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
                     setCurrentlyEditingElExtraOptions(temp);
                     console.log(temp)
                     console.log(currentlyEditingElExtraOptions, checkBoxOptionsRef.current.value);
-                    setElementOptions({ ...elementOptions, checkboxoptions: temp })
+                    setElementOptions({ ...elementOptions, elOptions: temp })
                     checkBoxOptionsRef.current.value = ""
                 }
             }} type="button" >Add Option</Button>
@@ -215,7 +215,7 @@ function RadioElementOptions(props: CheckBoxElementOptionsProps) {
                     const temp = Object.assign([], currentlyEditingElExtraOptions);
                     temp.push(radioOptionsRef.current.value)
                     setCurrentlyEditingElExtraOptions(temp)
-                    setElementOptions({ ...elementOptions, radioOptions: temp })
+                    setElementOptions({ ...elementOptions, elOptions: temp })
                     radioOptionsRef.current.value = ""
                 }
             }} type="button" >Add Option</Button>
@@ -249,7 +249,7 @@ function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
                     const temp = Object.assign([], currentlyEditingElExtraOptions);
                     temp.push(dropDownOptionsRef.current.value)
                     setCurrentlyEditingElExtraOptions(temp)
-                    setElementOptions({ ...elementOptions, dropdownOptions: temp })
+                    setElementOptions({ ...elementOptions, elOptions: temp })
                     dropDownOptionsRef.current.value = ""
                 }
             }} type="button">Add Option</Button>
@@ -285,7 +285,7 @@ function FormDemo(props: FormDemoProps) {
     }
     const FormElControls = (props: formElControlsProps) => {
         const { element, formState, setFormState } = props
-        return <div className="grid grid-flow-col w-fit gap-2">
+        return <div className="grid grid-flow-col w-fit gap-2 bg-cyan-500 py-1 px-2 rounded-md">
             <ArrowUpIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
                 let temp = [...formState]
                 temp = moveElUpInArr(element, formState)
@@ -332,11 +332,13 @@ function FormDemo(props: FormDemoProps) {
                                         <p className="sm:text-3xl text-xl font-bold">{element.options.label}</p>
                                         <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
                                     </div>
+                                    <div className="grid grid-flow-row gap-2">
                                     {
-                                        element.options.checkboxoptions && element.options.checkboxoptions.map(option => {
-                                            return <CustomFormCheckBox {...{ option, element }} key={uuid()}></CustomFormCheckBox>
+                                            element.options.elOptions && element.options.elOptions.map(option => {
+                                                return <CustomFormCheckBox {...{ option, element, formState, setFormState }} key={uuid()}></CustomFormCheckBox>
                                         })
                                     }
+                                    </div>
                                 </div>
                             } else if (element.type == "Radio") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
@@ -346,11 +348,14 @@ function FormDemo(props: FormDemoProps) {
                                         <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
 
                                     </div>
+                                    <div className="grid grid-flow-row gap-2">
+
                                     {
-                                        element.options.radioOptions && element.options.radioOptions.map((option, index) => {
-                                            return <CustomFormRadio {...{ element, option, index }} key={uuid()}></CustomFormRadio>
+                                            element.options.elOptions && element.options.elOptions.map((option, index) => {
+                                                return <CustomFormRadio {...{ element, option, index, formState, setFormState }} key={uuid()}></CustomFormRadio>
                                         })
                                     }
+                                    </div>
                                 </div>
                             } else if (element.type == "Dropdown") {
                                 return <div className="grid grid-flow-row gap-2" key={uuid()}>
@@ -358,7 +363,7 @@ function FormDemo(props: FormDemoProps) {
                                         <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
                                         <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
                                     </div>
-                                    <CustomFormDropdown {...{ element }}></CustomFormDropdown>
+                                    <CustomFormDropdown {...{ element, formState, setFormState }}></CustomFormDropdown>
                                 </div>
                             }
                         })
@@ -372,38 +377,112 @@ function FormDemo(props: FormDemoProps) {
 type CustomFormCheckBoxProps = {
     element: formEl,
     option: string,
-    index?: number
+    index?: number,
+    formState: formEl[],
+    setFormState: set<formEl[]>
 }
+
+type formElOptionsControlsProps = {
+    formState: formEl[]
+    element: formEl
+    setFormState: set<formEl[]>,
+    option: string
+}
+function FormElOptionsControl(props: formElOptionsControlsProps) {
+    const { element, formState, setFormState, option } = props;
+    return <div className="grid grid-flow-col w-fit gap-2 bg-green-500 py-1 px-2 rounded-md">
+        <ArrowUpIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+            let temp = [...formState]
+            let tempOptions = [...element.options.elOptions!]
+            tempOptions = moveElUpInArr(option, tempOptions)
+            for (let i = 0; i < temp.length; i++) {
+                if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
+                    if (temp[i]) {
+                        //@ts-ignore
+                        temp[i].options.elOptions = tempOptions;
+                    }
+                }
+            }
+            setFormState(temp)
+        }}></ArrowUpIcon>
+        <ArrowDownIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+            let temp = [...formState]
+            let tempOptions = [...element.options.elOptions!]
+            tempOptions = moveElDownInArr(option, tempOptions)
+            for (let i = 0; i < temp.length; i++) {
+                if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
+                    if (temp[i]) {
+                        //@ts-ignore
+                        temp[i].options.elOptions = tempOptions;
+                    }
+                }
+            }
+            setFormState(temp)
+        }}></ArrowDownIcon>
+        <TrashIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
+            let temp = [...formState]
+            let tempOptions = [...element.options.elOptions!]
+            tempOptions = removeFromArr(option, tempOptions)
+            for (let i = 0; i < temp.length; i++) {
+                if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
+                    if (temp[i]) {
+                        //@ts-ignore
+                        temp[i].options.elOptions = tempOptions;
+                    }
+                }
+            }
+            if (tempOptions.length == 0) {
+                temp = removeFromArr(element, temp);
+            }
+            setFormState(temp)
+        }}></TrashIcon>
+    </div>
+}
+
 function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
-    const { element, option, index } = props
+    const { element, option, formState, setFormState, index } = props
     const [checked, setChecked] = useState(element.options.default == option)
-    return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+    return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
         <input id={option} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
             setChecked(!checked)
         }}></input>
-        <label htmlFor={option}>{option}</label>
+        <div className="grid grid-flow-col gap-2 items-center justify-start">
+            <label htmlFor={option}>{option}</label>
+            <FormElOptionsControl {...{ element, formState, option, setFormState }} ></FormElOptionsControl>
+        </div>
     </div>
 }
 function CustomFormRadio(props: CustomFormCheckBoxProps) {
-    const { element, option, index } = props;
+    const { element, option, index, formState, setFormState } = props;
     const [checked, setChecked] = useState(element.options.default == option)
-    return <div key={uuid()} className="grid grid-cols-[1fr_9fr]">
+    return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
         <input id={`${option}_${index}`} type="radio" name={element.options.name} checked={checked} required={element.options.required} value={option} onChange={() => {
             setChecked(!checked)
         }}></input>
-        <label htmlFor={`${option}_${index}`}>{option}</label>
+        <div className="grid grid-flow-col gap-2 items-center justify-start">
+            <label htmlFor={`${option}_${index}`}>{option}</label>
+            <FormElOptionsControl {...{ element, formState, option, setFormState }} ></FormElOptionsControl>
+        </div>
+
     </div>
 }
 type CustomFormDropdownProps = {
     element: formEl,
+    formState: formEl[],
+    setFormState: set<formEl[]>
 }
 function CustomFormDropdown(props: CustomFormDropdownProps) {
-    const { element } = props;
+    const { element, formState, setFormState } = props;
     return <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1" defaultValue={element.options.default || ""}>
-        {element.options.dropdownOptions && element.options.dropdownOptions.map((option, index) => {
-            return <option key={uuid()} value={option}>
-                {option}
-            </option>
+        {element.options.elOptions && element.options.elOptions.map((option, index) => {
+            return (
+                <option key={uuid()} value={option}>
+                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                        <p>{option}</p>
+                        <FormElOptionsControl {...{ element, formState, option, setFormState }}></FormElOptionsControl>
+                    </div>
+                </option>
+            )
         })}
     </select>
 }
