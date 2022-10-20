@@ -333,11 +333,11 @@ function FormDemo(props: FormDemoProps) {
                                         <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
                                     </div>
                                     <div className="grid grid-flow-row gap-2">
-                                    {
+                                        {
                                             element.options.elOptions && element.options.elOptions.map(option => {
                                                 return <CustomFormCheckBox {...{ option, element, formState, setFormState }} key={uuid()}></CustomFormCheckBox>
-                                        })
-                                    }
+                                            })
+                                        }
                                     </div>
                                 </div>
                             } else if (element.type == "Radio") {
@@ -350,20 +350,35 @@ function FormDemo(props: FormDemoProps) {
                                     </div>
                                     <div className="grid grid-flow-row gap-2">
 
-                                    {
+                                        {
                                             element.options.elOptions && element.options.elOptions.map((option, index) => {
                                                 return <CustomFormRadio {...{ element, option, index, formState, setFormState }} key={uuid()}></CustomFormRadio>
-                                        })
-                                    }
+                                            })
+                                        }
                                     </div>
                                 </div>
                             } else if (element.type == "Dropdown") {
-                                return <div className="grid grid-flow-row gap-2" key={uuid()}>
-                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
-                                        <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
-                                        <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+                                return <div className="grid grid-flow-col gap-2" key={uuid()}>
+                                    <div className="grid grid-flow-row gap-2">
+                                        <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                            <label htmlFor={element.options.name} className="sm:text-3xl text-xl font-bold">{element.options.label}</label>
+                                            <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
+                                        </div>
+                                        <CustomFormDropdown {...{ element, formState, setFormState }}></CustomFormDropdown>
                                     </div>
-                                    <CustomFormDropdown {...{ element, formState, setFormState }}></CustomFormDropdown>
+                                    <div className="grid grid-flow-row gap-2 bg-green-500 rounded-md px-2 py-1 mt-2">
+                                        <p className="text-sm">Edit dropdown options (not visible to userse)</p>
+                                        <div className="grid grid-flow-row gap-2 px-2 py-1">
+                                            {element.options.elOptions && element.options.elOptions.map((option, index) => {
+                                                return (
+                                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                                        <p>{option}</p>
+                                                        <FormElOptionsControl {...{ element, formState, option, setFormState }}></FormElOptionsControl>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         })
@@ -477,10 +492,7 @@ function CustomFormDropdown(props: CustomFormDropdownProps) {
         {element.options.elOptions && element.options.elOptions.map((option, index) => {
             return (
                 <option key={uuid()} value={option}>
-                    <div className="grid grid-flow-col gap-2 items-center justify-start">
-                        <p>{option}</p>
-                        <FormElOptionsControl {...{ element, formState, option, setFormState }}></FormElOptionsControl>
-                    </div>
+                    <p>{option}</p>
                 </option>
             )
         })}
