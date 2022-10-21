@@ -75,7 +75,7 @@ export const authRouter = router({
 
 
 
-function hash(input: string) {
+export function hash(input: string) {
     const hash = crypto.createHash('sha256').update(input).digest('base64')
     return hash
 }

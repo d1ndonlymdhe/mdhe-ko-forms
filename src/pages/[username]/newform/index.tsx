@@ -6,6 +6,7 @@ import TopBar from "../../../components/Topbar";
 import uuid from "react-uuid"
 import Input from "../../../components/Input";
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { trpc } from "../../../utils/trpc";
 
 type set<T> = React.Dispatch<React.SetStateAction<T>>
 
@@ -20,9 +21,7 @@ type formElOptions = {
     name: string,
     label: string,
     elOptions?: string[]
-    // elOptions?: string[]
-    // elOptions?: string[]
-    default?: string
+    defaultValue?: string
     required?: boolean
     key: string;
 }
@@ -34,6 +33,7 @@ export default function FormMaker(props: pageProps) {
     const [formDescription, setFormDescription] = useState("Undescribed Form")
     const FormTitleRef = useRef<HTMLInputElement>(null)
     const FormDescriptionRef = useRef<HTMLInputElement>(null)
+    const createFormMutation = trpc.form.createForm.useMutation();
     return <>
         <TopBar></TopBar>
         <div className="grid lg:grid-cols-2 sm:grid-cols-2  grid-rows-2">
@@ -55,7 +55,9 @@ export default function FormMaker(props: pageProps) {
                 </div>
             </div>
             <FormDemo {...{ formState, formTitle, formDescription, setFormState }}></FormDemo>
-
+            <Button onClick={(e) => {
+                createFormMutation.mutate({ elements: formState, title: formTitle, description: formDescription })
+            }} >Done</Button>
         </div>
     </>
 }
@@ -68,7 +70,7 @@ function AddFromElement(props: AddFromElementProps) {
     const { formState, setFormState } = props
     const [currentSelection, setCurrentSelection] = useState<"Text" | "Radio" | "Dropdown" | "Checkbox">("Text");
     //@ts-ignore
-    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", elOptions: [], default: "", elOptions: [], elOptions: [], required: false, key: uuid() })
+    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", elOptions: [], defaultValue: "", elOptions: [], elOptions: [], required: false, key: uuid() })
     const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = useState<string[]>([])
 
     return <div className="grid">
@@ -83,7 +85,7 @@ function AddFromElement(props: AddFromElementProps) {
             <Wrapper className="text-sm">
                 <label htmlFor="elementType">Select Element Type To Add: </label>
                 <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
-                    setElementOptions({ label: "Add a label", name: "random_name", elOptions: [], default: "", required: false, key: uuid() })
+                    setElementOptions({ label: "Add a label", name: "random_name", elOptions: [], defaultValue: "", required: false, key: uuid() })
                     //@ts-ignore
                     setCurrentSelection(e.target.value!)
                     console.log(e.target.value)
@@ -123,7 +125,7 @@ function TextElementOptions(props: TextElementOptionsProps) {
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, default: e.target.value })
+            setElementOptions({ ...elementOptions, defaultValue: e.target.value })
         }} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <div className="grid grid-cols-[1fr_9fr]">
@@ -158,7 +160,7 @@ function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, default: e.target.value })
+            setElementOptions({ ...elementOptions, defaultValue: e.target.value })
         }}></Input>
 
         <label htmlFor="checkBoxOptions">Add Options:</label>
@@ -204,7 +206,7 @@ function RadioElementOptions(props: CheckBoxElementOptionsProps) {
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, default: e.target.value })
+            setElementOptions({ ...elementOptions, defaultValue: e.target.value })
         }}></Input>
 
         <label htmlFor="checkBoxOptions">Add Options:</label>
@@ -238,7 +240,7 @@ function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
 
         <label htmlFor="defaultValue">Default Value:</label>
         <Input id="defaultValue" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, default: e.target.value })
+            setElementOptions({ ...elementOptions, defaultValue: e.target.value })
         }}></Input>
 
         <label htmlFor="checkBoxOptions">Add Options:</label>
@@ -324,7 +326,7 @@ function FormDemo(props: FormDemoProps) {
                                         <FormElControls {...{ formState, element, setFormState }} ></FormElControls>
 
                                     </div>
-                                    <Input id={element.options.name} type="text" defaultValue={element.options.default || ""} required={element.options.required}></Input>
+                                    <Input id={element.options.name} type="text" defaultValue={element.options.defaultValue || ""} required={element.options.required}></Input>
                                 </div>
                             } else if (element.type == "Checkbox") {
                                 return <div className="grid grid-flow-row" key={uuid()}>
@@ -456,7 +458,7 @@ function FormElOptionsControl(props: formElOptionsControlsProps) {
 
 function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
     const { element, option, formState, setFormState, index } = props
-    const [checked, setChecked] = useState(element.options.default == option)
+    const [checked, setChecked] = useState(element.options.defaultValue == option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
         <input id={option} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
             setChecked(!checked)
@@ -469,7 +471,7 @@ function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
 }
 function CustomFormRadio(props: CustomFormCheckBoxProps) {
     const { element, option, index, formState, setFormState } = props;
-    const [checked, setChecked] = useState(element.options.default == option)
+    const [checked, setChecked] = useState(element.options.defaultValue == option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
         <input id={`${option}_${index}`} type="radio" name={element.options.name} checked={checked} required={element.options.required} value={option} onChange={() => {
             setChecked(!checked)
@@ -488,7 +490,7 @@ type CustomFormDropdownProps = {
 }
 function CustomFormDropdown(props: CustomFormDropdownProps) {
     const { element, formState, setFormState } = props;
-    return <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1" defaultValue={element.options.default || ""}>
+    return <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1" defaultValue={element.options.defaultValue || ""}>
         {element.options.elOptions && element.options.elOptions.map((option, index) => {
             return (
                 <option key={uuid()} value={option}>

@@ -16,10 +16,40 @@ model User {
   username String
   password String
   salt     String
+  forms    Form[]
 }
 
 model userToken {
   id     String @id @default(cuid())
   userId String
   value  String
+}
+
+model Form {
+  id          String        @id @default(cuid())
+  ownerId     String
+  title       String
+  description String
+  owner       User          @relation(fields: [ownerId], references: [id])
+  textFields  FormElement[]
+}
+
+model FormElement {
+  id        String           @id @default(cuid())
+  type      String
+  formId    String
+  form      Form             @relation(fields: [formId], references: [id])
+  name      String
+  label     String
+  elOptions ElementOptions[]
+  default   String?
+  required  Boolean?
+  key       String
+}
+
+model ElementOptions {
+  id        String      @id @default(cuid())
+  elementId String
+  option    String
+  element   FormElement @relation(fields: [elementId], references: [id])
 }
