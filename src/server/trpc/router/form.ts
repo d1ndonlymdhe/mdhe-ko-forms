@@ -50,10 +50,27 @@ export const formRouter = router({
                         })
                     }
                 })
+                return {
+                    status: "success",
+                    data: {
+                        formId: newForm.id
+                    }
+                }
+            } else {
+                return {
+                    status: "error",
+                    data: {
+                        error: "NO_AUTH"
+                    }
+                }
             }
-        }
-        return {
-            token
+        } else {
+            return {
+                status: "error",
+                data: {
+                    error: "NO_AUTH"
+                }
+            }
         }
     })
 })

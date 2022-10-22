@@ -7,13 +7,16 @@ import uuid from "react-uuid"
 import Input from "../../../components/Input";
 import { ArrowDownIcon, ArrowUpIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { trpc } from "../../../utils/trpc";
+import ModalWithBackdrop from "../../../components/ModelWithBackdrop";
+import Head from "next/head";
+import Link from "next/link";
 
 type set<T> = React.Dispatch<React.SetStateAction<T>>
 
 type pageProps = {
     username: string
 }
-type formEl = {
+export type formEl = {
     type: "Text" | "Radio" | "Checkbox" | "Dropdown",
     options: formElOptions
 }
@@ -31,13 +34,47 @@ export default function FormMaker(props: pageProps) {
     const [formState, setFormState] = useState<formEl[]>([])
     const [formTitle, setFormTitle] = useState("Untitled Form")
     const [formDescription, setFormDescription] = useState("Undescribed Form")
+    const [showModal, setShowModal] = useState(false);
     const FormTitleRef = useRef<HTMLInputElement>(null)
     const FormDescriptionRef = useRef<HTMLInputElement>(null)
-    const createFormMutation = trpc.form.createForm.useMutation();
+    const [formStatus, setFormStatus] = useState("Loading")
+    const createFormMutation = trpc.form.createForm.useMutation({
+        onSuccess: (data) => {
+            //@ts-ignore
+            setFormStatus(data?.status == "success" ? "Success" : "Error")
+        },
+        onError: () => {
+            setFormStatus("Error")
+        }
+    });
     return <>
+        <Head>
+            <title>
+                {"Create New Form"}
+            </title>
+        </Head>
+        {
+            showModal && <ModalWithBackdrop title={`Form Creation Status: ${formStatus}`} onClick={() => {
+                if (!createFormMutation.isLoading) {
+                    setShowModal(false)
+                }
+            }}>
+                <div className="grid grid-flow-row gap-y-2 justify-center">
+                    {
+                        formStatus == "Success" &&
+                        <Link href={`/${username}/${createFormMutation.data?.data.formId}`}><a target={"_blank"}><Button expand={true}>Go To Form</Button></a></Link>
+                    }
+                    <Button expand={true} className={`bg-red-400 ${formStatus == "loading" && "bg-orange-400"}`} onClick={() => {
+                        if (!createFormMutation.isLoading) {
+                            setShowModal(false)
+                        }
+                    }}>{formStatus == "loading" ? "Loading" : "Exit"}</Button>
+                </div>
+            </ModalWithBackdrop>
+        }
         <TopBar></TopBar>
-        <div className="grid lg:grid-cols-2 sm:grid-cols-2  grid-rows-2">
-            <div id="form_designer" className="grid grid-flow-row px-2 py-1 text-lg">
+        <div className="grid lg:grid-cols-2 sm:grid-cols-2 grid-rows-2 gap-x-4 gap-y-2 mt-4 mx-2">
+            <div id="form_designer" className="grid grid-flow-row px-2 py-1 text-lg h-[95%] gap-y-2">
                 <Wrapper id="formDescription">
                     <label htmlFor="formTitle">Title:</label>
                     <Input id="formTitle" type="text" onChange={(e) => {
@@ -50,14 +87,17 @@ export default function FormMaker(props: pageProps) {
                     }
                     } ref={FormDescriptionRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
                 </Wrapper>
-                <div className="mt-2">
+                <div className="">
                     <AddFromElement {...{ setFormState, formState }}></AddFromElement>
+                </div>
+                <div>
+                    <Button onClick={(e) => {
+                        createFormMutation.mutate({ elements: formState, title: formTitle, description: formDescription })
+                        setShowModal(true)
+                    }} className="mx-2" >Complete</Button>
                 </div>
             </div>
             <FormDemo {...{ formState, formTitle, formDescription, setFormState }}></FormDemo>
-            <Button onClick={(e) => {
-                createFormMutation.mutate({ elements: formState, title: formTitle, description: formDescription })
-            }} >Done</Button>
         </div>
     </>
 }
@@ -265,7 +305,7 @@ type WrapperProps = {
     id?: string
 }
 function Wrapper(props: PropsWithChildren<WrapperProps>) {
-    return <div className={`grid grid-flow-row bg-purple-500 my-2 mx-2 rounded-lg text-lg text-white py-2 px-2 ${props.className}`} id={props.id || ""}>
+    return <div className={`grid grid-flow-row bg-purple-500 rounded-lg text-lg text-white py-2 px-2 h-fit ${props.className}`} id={props.id || ""}>
         {props.children}
     </div >
 }
@@ -305,12 +345,12 @@ function FormDemo(props: FormDemoProps) {
             }}></TrashIcon>
         </div>
     }
-    return <div id="form_demo " className=" text-white">
+    return <div id="form_demo " className=" text-white flex flex-col gap-y-2 h-[95%] mt-1">
         <Wrapper key={uuid()}>
-            <div className="font-bold text-4xl">
+            <div className="font-bold text-4xl h-fit">
                 <h1>{formTitle || "Untitled Form"}</h1>
             </div>
-            <div>
+            <div className="h-fit">
                 <h2>{formDescription || "Undescribed Form"}</h2>
             </div>
         </Wrapper>

@@ -12,17 +12,19 @@ model Example {
 }
 
 model User {
-  id       String @id @default(cuid())
-  username String
-  password String
-  salt     String
-  forms    Form[]
+  id        String      @id @default(cuid())
+  username  String
+  password  String
+  salt      String
+  forms     Form[]
+  userToken userToken[]
 }
 
 model userToken {
-  id     String @id @default(cuid())
-  userId String
-  value  String
+  id      String @id @default(cuid())
+  userId  String
+  value   String
+  user    User   @relation(fields: [userId], references: [id])
 }
 
 model Form {
@@ -31,7 +33,7 @@ model Form {
   title       String
   description String
   owner       User          @relation(fields: [ownerId], references: [id])
-  textFields  FormElement[]
+  elements    FormElement[]
 }
 
 model FormElement {

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
-export default async function userFromToken(token: string) {
+export default async function userFromToken(token?: string) {
+    if (token) {
     const prisma = new PrismaClient()
     const tokenInfo = await prisma.userToken.findFirst({ where: { value: token } })
     if (tokenInfo) {
@@ -13,4 +14,6 @@ export default async function userFromToken(token: string) {
     } else {
         return undefined
     }
+}
+    return undefined
 }
