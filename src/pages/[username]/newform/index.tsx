@@ -10,7 +10,7 @@ import { trpc } from "../../../utils/trpc";
 import ModalWithBackdrop from "../../../components/ModelWithBackdrop";
 import Head from "next/head";
 import Link from "next/link";
-
+import Wrapper from "../../../components/Wrapper"
 type set<T> = React.Dispatch<React.SetStateAction<T>>
 
 type pageProps = {
@@ -300,15 +300,7 @@ function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
 }
 
 
-type WrapperProps = {
-    className?: string
-    id?: string
-}
-function Wrapper(props: PropsWithChildren<WrapperProps>) {
-    return <div className={`grid grid-flow-row bg-purple-500 rounded-lg text-lg text-white py-2 px-2 h-fit ${props.className}`} id={props.id || ""}>
-        {props.children}
-    </div >
-}
+
 
 type FormDemoProps = {
     formTitle: string,
@@ -500,11 +492,11 @@ function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
     const { element, option, formState, setFormState, index } = props
     const [checked, setChecked] = useState(element.options.defaultValue == option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
-        <input id={option} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
+        <input id={`${option}_${index}`} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
             setChecked(!checked)
         }}></input>
         <div className="grid grid-flow-col gap-2 items-center justify-start">
-            <label htmlFor={option}>{option}</label>
+            <label htmlFor={`${option}_${index}`}>{option}</label>
             <FormElOptionsControl {...{ element, formState, option, setFormState }} ></FormElOptionsControl>
         </div>
     </div>

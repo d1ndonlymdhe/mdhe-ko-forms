@@ -21,10 +21,10 @@ model User {
 }
 
 model userToken {
-  id      String @id @default(cuid())
-  userId  String
-  value   String
-  user    User   @relation(fields: [userId], references: [id])
+  id     String @id @default(cuid())
+  userId String
+  value  String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Form {
@@ -40,13 +40,13 @@ model FormElement {
   id        String           @id @default(cuid())
   type      String
   formId    String
-  form      Form             @relation(fields: [formId], references: [id])
   name      String
   label     String
-  elOptions ElementOptions[]
   default   String?
   required  Boolean?
   key       String
+  form      Form             @relation(fields: [formId], references: [id])
+  elOptions ElementOptions[]
 }
 
 model ElementOptions {

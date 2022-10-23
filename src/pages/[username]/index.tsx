@@ -6,10 +6,20 @@ import Link from "next/link"
 import { useEffect, useRef } from "react";
 import Cookies from "js-cookie"
 import userFromToken from "../../utils/userFromToken";
-import { formEl } from "./newform";
+// import { formEl } from "./newform";
 import Head from "next/head";
 import uuid from "react-uuid";
-type form = {
+export type formEl = {
+    type: string,
+    name: string,
+    label: string,
+    default?: string,
+    required?: boolean
+    elOptions: {
+        option: string
+    }[]
+}
+export type form = {
     title: string,
     description: string,
     elements: formEl[]
