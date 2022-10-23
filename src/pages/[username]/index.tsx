@@ -33,7 +33,10 @@ type PageProps = {
 export default function Dashboard(pageProps: PageProps) {
     const { username, forms } = pageProps
     useEffect(() => {
-        Cookies.set("token", Cookies.get("token")!, { expires: 30 })
+        const token = Cookies.get("token")
+        if (token) {
+            Cookies.set("token", token, { expires: 30 })
+        }
     })
     return <>
         <Head>
@@ -134,7 +137,8 @@ function TopBar() {
 export const getServerSideProps: GetServerSideProps<any, { username: string }> = async (context) => {
     const token = context.req.cookies.token
     const prisma = new PrismaClient()
-    const { username: reqUsername } = context.params!
+    if (context.params) {
+        const { username: reqUsername } = context.params
     const user = await userFromToken(token)
     if (user && user.username === reqUsername) {
         const forms = await prisma.form.findMany({ where: { ownerId: user.id } })
@@ -159,39 +163,11 @@ export const getServerSideProps: GetServerSideProps<any, { username: string }> =
             }
         }
     }
-    // if (token) {
-    //     const tokenInfo = await prisma.userToken.findFirst({ where: { value: token } })
-    //     if (tokenInfo) {
-    //         const user = await prisma.user.findFirst({ where: { id: tokenInfo.userId } });
-    //         const forms = await prisma.form.findMany({ where: { ownerId: user?.id } })
-    //         if (user?.username == reqUsername) {
-    //             return {
-    //                 props: {
-    //                     username: user.username
-    //                 }
-    //             }
-    //         } else {
-    //             return {
-    //                 redirect: {
-    //                     permanent: false,
-    //                     destination: "/"
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         return {
-    //             redirect: {
-    //                 permanent: false,
-    //                 destination: "/"
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     return {
-    //         redirect: {
-    //             permanent: false,
-    //             destination: "/"
-    //         }
-    //     }
-    // }
+    }
+    return {
+        redirect: {
+            permanent: false,
+            destination: "/"
+        }
+    }
 }

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { GetServerSideProps } from "next"
-import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Button from "../../../components/Button";
 import TopBar from "../../../components/Topbar";
 import uuid from "react-uuid"
@@ -40,7 +40,6 @@ export default function FormMaker(props: pageProps) {
     const [formStatus, setFormStatus] = useState("Loading")
     const createFormMutation = trpc.form.createForm.useMutation({
         onSuccess: (data) => {
-            //@ts-ignore
             setFormStatus(data?.status == "success" ? "Success" : "Error")
         },
         onError: () => {
@@ -77,13 +76,17 @@ export default function FormMaker(props: pageProps) {
             <div id="form_designer" className="grid grid-flow-row px-2 py-1 text-lg h-[95%] gap-y-2">
                 <Wrapper id="formDescription">
                     <label htmlFor="formTitle">Title:</label>
-                    <Input id="formTitle" type="text" onChange={(e) => {
-                        setFormTitle(FormTitleRef.current?.value!)
+                    <Input id="formTitle" type="text" onChange={() => {
+                        if (FormTitleRef.current) {
+                            setFormTitle(FormTitleRef.current.value)
+                        }
                     }
                     } ref={FormTitleRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
                     <label htmlFor="formDescription">Description:</label>
-                    <Input id="formDescription" type="text" onChange={(e) => {
-                        setFormDescription(FormDescriptionRef.current?.value!)
+                    <Input id="formDescription" type="text" onChange={() => {
+                        if (FormDescriptionRef.current) {
+                            setFormDescription(FormDescriptionRef.current.value)
+                        }
                     }
                     } ref={FormDescriptionRef} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
                 </Wrapper>
@@ -91,7 +94,7 @@ export default function FormMaker(props: pageProps) {
                     <AddFromElement {...{ setFormState, formState }}></AddFromElement>
                 </div>
                 <div>
-                    <Button onClick={(e) => {
+                    <Button onClick={() => {
                         createFormMutation.mutate({ elements: formState, title: formTitle, description: formDescription })
                         setShowModal(true)
                     }} className="mx-2" >Complete</Button>
@@ -109,15 +112,13 @@ type AddFromElementProps = {
 function AddFromElement(props: AddFromElementProps) {
     const { formState, setFormState } = props
     const [currentSelection, setCurrentSelection] = useState<"Text" | "Radio" | "Dropdown" | "Checkbox">("Text");
-    //@ts-ignore
-    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", elOptions: [], defaultValue: "", elOptions: [], elOptions: [], required: false, key: uuid() })
+    const [elementOptions, setElementOptions] = useState<formElOptions>({ label: "Add a label", name: "random_name", elOptions: [], defaultValue: "", required: false, key: uuid() })
     const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = useState<string[]>([])
-
+    const formRef = useRef<HTMLFormElement>(null)
     return <div className="grid">
-        <form className="" onSubmit={(e) => {
+        <form className="" ref={formRef} onSubmit={(e) => {
             e.preventDefault()
-            //@ts-ignore
-            e.target.reset()
+            formRef.current && formRef.current.reset()
             setFormState([...formState, { type: currentSelection, options: elementOptions }])
             setCurrentSelection("Text")
             setCurrentlyEditingElExtraOptions([]);
@@ -126,8 +127,12 @@ function AddFromElement(props: AddFromElementProps) {
                 <label htmlFor="elementType">Select Element Type To Add: </label>
                 <select id="elementType" className="px-2 py-1 bg-pink-500 text-white rounded-md" onChange={(e) => {
                     setElementOptions({ label: "Add a label", name: "random_name", elOptions: [], defaultValue: "", required: false, key: uuid() })
-                    //@ts-ignore
-                    setCurrentSelection(e.target.value!)
+                    if (e.target) {
+                        const value = e.target.value;
+                        if (value == "Text" || value == "Checkbox" || value == "Radio" || value == "Dropdown") {
+                            setCurrentSelection(value)
+                        }
+                    }
                     console.log(e.target.value)
                 }} defaultValue="Text">
                     <option className="" value={"Text"}>Text</option>
@@ -154,13 +159,12 @@ function TextElementOptions(props: TextElementOptionsProps) {
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
-            // changeOptions({ name: e?.target.value })
-            setElementOptions({ ...elementOptions, name: e?.target.value! })
+            setElementOptions({ ...elementOptions, name: e.target.value })
         }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, label: e?.target.value! })
+            setElementOptions({ ...elementOptions, label: e.target.value })
         }} required={true} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
@@ -169,10 +173,8 @@ function TextElementOptions(props: TextElementOptionsProps) {
         }} className="hover:scale-100 focus:scale-100 active:scale-100"></Input>
 
         <div className="grid grid-cols-[1fr_9fr]">
-            <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
-                if (e.target.value == "true") {
-                    setElementOptions({ ...elementOptions, required: true })
-                }
+            <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={() => {
+                setElementOptions({ ...elementOptions, required: true })
             }}></input>
             <label htmlFor="inputRequired">Required</label>
         </div>
@@ -185,17 +187,15 @@ type CheckBoxElementOptionsProps = TextElementOptionsProps & {
 function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
     const { setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions } = props;
     const checkBoxOptionsRef = useRef<HTMLInputElement>(null)
-    // const [currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions] = [currenlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions];
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
-            // changeOptions({ name: e?.target.value })
-            setElementOptions({ ...elementOptions, name: e?.target.value! })
+            setElementOptions({ ...elementOptions, name: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, label: e?.target.value! })
+            setElementOptions({ ...elementOptions, label: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
@@ -206,7 +206,7 @@ function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
         <label htmlFor="checkBoxOptions">Add Options:</label>
         <div className="grid grid-flow-col gap-2">
             <Input id="checkBoxOptions" type="text" ref={checkBoxOptionsRef}></Input>
-            <Button onClick={(e) => {
+            <Button onClick={() => {
                 if (checkBoxOptionsRef.current && checkBoxOptionsRef.current.value && checkBoxOptionsRef.current.value !== "") {
                     const temp = Object.assign([], currentlyEditingElExtraOptions);
                     temp.push(checkBoxOptionsRef.current.value)
@@ -236,12 +236,12 @@ function RadioElementOptions(props: CheckBoxElementOptionsProps) {
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
             // changeOptions({ name: e?.target.value })
-            setElementOptions({ ...elementOptions, name: e?.target.value! })
+            setElementOptions({ ...elementOptions, name: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, label: e?.target.value! })
+            setElementOptions({ ...elementOptions, label: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
@@ -270,12 +270,12 @@ function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, name: e?.target.value! })
+            setElementOptions({ ...elementOptions, name: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="label">Label:{"(hint shown to users)"}</label>
         <Input id="label" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, label: e?.target.value! })
+            setElementOptions({ ...elementOptions, label: e.target.value })
         }} required={true}></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
@@ -403,9 +403,9 @@ function FormDemo(props: FormDemoProps) {
                                     <div className="grid grid-flow-row gap-2 bg-green-500 rounded-md px-2 py-1 mt-2">
                                         <p className="text-sm">Edit dropdown options (not visible to userse)</p>
                                         <div className="grid grid-flow-row gap-2 px-2 py-1">
-                                            {element.options.elOptions && element.options.elOptions.map((option, index) => {
+                                            {element.options.elOptions && element.options.elOptions.map((option) => {
                                                 return (
-                                                    <div className="grid grid-flow-col gap-2 items-center justify-start">
+                                                    <div className="grid grid-flow-col gap-2 items-center justify-start" key={uuid()}>
                                                         <p>{option}</p>
                                                         <FormElOptionsControl {...{ element, formState, option, setFormState }}></FormElOptionsControl>
                                                     </div>
@@ -441,28 +441,34 @@ function FormElOptionsControl(props: formElOptionsControlsProps) {
     const { element, formState, setFormState, option } = props;
     return <div className="grid grid-flow-col w-fit gap-2 bg-green-500 py-1 px-2 rounded-md">
         <ArrowUpIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
-            let temp = [...formState]
-            let tempOptions = [...element.options.elOptions!]
+            const temp = [...formState]
+            let tempOptions: string[] = []
+            if (element.options.elOptions) {
+                tempOptions = [...element.options.elOptions]
+            }
             tempOptions = moveElUpInArr(option, tempOptions)
             for (let i = 0; i < temp.length; i++) {
                 if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
-                    if (temp[i]) {
-                        //@ts-ignore
-                        temp[i].options.elOptions = tempOptions;
+                    const t = temp[i]
+                    if (t) {
+                        t.options.elOptions = tempOptions;
                     }
                 }
             }
             setFormState(temp)
         }}></ArrowUpIcon>
         <ArrowDownIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
-            let temp = [...formState]
-            let tempOptions = [...element.options.elOptions!]
+            const temp = [...formState]
+            let tempOptions: string[] = []
+            if (element.options.elOptions) {
+                tempOptions = [...element.options.elOptions]
+            }
             tempOptions = moveElDownInArr(option, tempOptions)
             for (let i = 0; i < temp.length; i++) {
                 if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
-                    if (temp[i]) {
-                        //@ts-ignore
-                        temp[i].options.elOptions = tempOptions;
+                    const t = temp[i]
+                    if (t) {
+                        t.options.elOptions = tempOptions;
                     }
                 }
             }
@@ -470,13 +476,16 @@ function FormElOptionsControl(props: formElOptionsControlsProps) {
         }}></ArrowDownIcon>
         <TrashIcon className="w-6 h-6 hover:cursor-pointer" onClick={() => {
             let temp = [...formState]
-            let tempOptions = [...element.options.elOptions!]
+            let tempOptions: string[] = []
+            if (element.options.elOptions) {
+                tempOptions = [...element.options.elOptions]
+            }
             tempOptions = removeFromArr(option, tempOptions)
             for (let i = 0; i < temp.length; i++) {
                 if (JSON.stringify(temp[i]) == JSON.stringify(element)) {
-                    if (temp[i]) {
-                        //@ts-ignore
-                        temp[i].options.elOptions = tempOptions;
+                    const t = temp[i]
+                    if (t) {
+                        t.options.elOptions = tempOptions;
                     }
                 }
             }
@@ -492,7 +501,7 @@ function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
     const { element, option, formState, setFormState, index } = props
     const [checked, setChecked] = useState(element.options.defaultValue == option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
-        <input id={`${option}_${index}`} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={(e) => {
+        <input id={`${option}_${index}`} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={() => {
             setChecked(!checked)
         }}></input>
         <div className="grid grid-flow-col gap-2 items-center justify-start">
@@ -521,9 +530,9 @@ type CustomFormDropdownProps = {
     setFormState: set<formEl[]>
 }
 function CustomFormDropdown(props: CustomFormDropdownProps) {
-    const { element, formState, setFormState } = props;
+    const { element } = props;
     return <select name={element.options.name} id={element.options.name} className="bg-pink-500 rounded-md px-2 py-1" defaultValue={element.options.defaultValue || ""}>
-        {element.options.elOptions && element.options.elOptions.map((option, index) => {
+        {element.options.elOptions && element.options.elOptions.map((option) => {
             return (
                 <option key={uuid()} value={option}>
                     <p>{option}</p>
@@ -537,7 +546,8 @@ function CustomFormDropdown(props: CustomFormDropdownProps) {
 export const getServerSideProps: GetServerSideProps<any, { username: string }> = async (context) => {
     const token = context.req.cookies.token
     const prisma = new PrismaClient()
-    const { username: reqUsername } = context.params!
+    if (context.params) {
+        const { username: reqUsername } = context.params
     if (token) {
         const tokenInfo = await prisma.userToken.findFirst({ where: { value: token } })
         if (tokenInfo) {
@@ -573,6 +583,13 @@ export const getServerSideProps: GetServerSideProps<any, { username: string }> =
         }
     }
 }
+    return {
+        redirect: {
+            permanent: false,
+            destination: "/"
+        }
+    }
+}
 
 
 function moveElUpInArr<T>(el: T, arr: T[]) {
@@ -589,10 +606,16 @@ function moveElUpInArr<T>(el: T, arr: T[]) {
             if (i == indexOfEl - 1) {
                 retArr.push(el)
             } else if (i == indexOfEl) {
-                retArr.push(arr[i - 1]!)
+                const a = arr[i - 1]
+                if (a) {
+                    retArr.push(a)
+                }
             }
             else {
-                retArr.push(arr[i]!)
+                const a = arr[i]
+                if (a) {
+                    retArr.push(a)
+                }
             }
         }
         return retArr;
@@ -613,9 +636,15 @@ function moveElDownInArr<T>(el: T, arr: T[]) {
             if (i == indexOfEl + 1) {
                 retArr[i] = el;
             } else if (i == indexOfEl) {
-                retArr[i] = arr[i + 1]!
+                const a = arr[i + 1]
+                if (a) {
+                    retArr[i] = a;
+                }
             } else {
-                retArr[i] = arr[i]!
+                const a = arr[i]
+                if (a) {
+                    retArr[i] = a;
+                }
             }
         }
         return retArr
@@ -634,7 +663,10 @@ function removeFromArr<T>(el: T, arr: T[]) {
     if (indexOfEl !== -1) {
         for (let i = 0; i < arr.length; i++) {
             if (i !== indexOfEl) {
-                retArr.push(arr[i]!)
+                const a = arr[i];
+                if (a) {
+                    retArr.push(a)
+                }
             }
         }
         return retArr;

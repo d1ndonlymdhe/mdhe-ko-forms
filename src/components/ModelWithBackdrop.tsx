@@ -1,5 +1,4 @@
 import { PropsWithChildren } from "react";
-import Button from "./Button";
 
 type ModalWithBackdropProps = {
     onClick?: () => void,

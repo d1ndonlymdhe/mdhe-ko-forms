@@ -1,13 +1,12 @@
 // src/server/router/context.ts
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { NextApiRequest } from "next";
 import { prisma } from "../db/client";
 
 /**
  * Replace this with an object if you want to pass things to createContextInner
  */
-type CreateContextOptions = Record<string, NextApiRequest>;
+// type CreateContextOptions = Record<string, NextApiRequest>;
 
 /** Use this helper for:
  *  - testing, where we dont have to Mock Next.js' req/res

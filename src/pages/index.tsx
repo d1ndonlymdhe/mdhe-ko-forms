@@ -1,6 +1,6 @@
-import type { GetServerSideProps, NextPage, NextPageContext } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { trpc } from "../utils/trpc";
 import Input from "../components/Input"
 import Button from "../components/Button";
@@ -20,15 +20,13 @@ const Home: NextPage = () => {
         <h1 className="text-5xl font-extrabold leading-normal text-gray-700 md:text-[5rem]">
           Mdhe <span className="text-purple-300">Ko</span> Forms
         </h1>
-        <AuthComponent isSignedIn={false} ></AuthComponent>
+        <AuthComponent></AuthComponent>
       </main>
     </>
   );
 };
-type AuthComponentProps = {
-  isSignedIn: boolean
-}
-function AuthComponent(props: AuthComponentProps) {
+
+function AuthComponent() {
   const [currentForm, setCurrentForm] = useState("login");
   return <div className="grid grid-rows-[9fr_1fr] justify-items-center">
     <div>

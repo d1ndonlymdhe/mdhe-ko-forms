@@ -1,7 +1,6 @@
 import { router, publicProcedure } from "../trpc"
 import { z } from "zod"
 import userFromToken from "../../../utils/userFromToken"
-import { title } from "process"
 const formOptions = z.object({
     name: z.string(),
     elOptions: z.array(z.string()).optional(),
@@ -41,7 +40,7 @@ export const formRouter = router({
                     })
                     if (element.options.elOptions) {
                         element.options.elOptions.forEach(async option => {
-                            const newElementOptions = await ctx.prisma.elementOptions.create({
+                            await ctx.prisma.elementOptions.create({
                                 data: {
                                     option: option,
                                     elementId: newElement.id,

@@ -13,11 +13,20 @@ type pageProps = {
     username: string,
     form: form
 }
-type element = formEl
 export default function formRenderer(props: pageProps) {
-    const { username, form } = props
+    const { form } = props
     console.log(form)
     // return <div>{props.formId}</div>
+    if (!form) {
+        return <div className="grid grid-rows-[1fr_9fr]">
+            <TopBar></TopBar>
+            <div className="w-screen h-full grid justify-center items-center">
+                <span className="text-9xl text-gray-600 font-bold">
+                    An Error Occured
+                </span>
+            </div>
+        </div>
+    }
     return <div className="grid grid-rows-[1fr_9fr] gap-2 bg-slate-500">
         <TopBar></TopBar>
         <div className="grid justify-center mx-2 mb-2">
@@ -45,7 +54,7 @@ export default function formRenderer(props: pageProps) {
                                         <div className="grid grid-flow-row gap-2">
                                             {
                                                 element.elOptions && element.elOptions.map((option, index) => {
-                                                    return <CustomFormCheckBox {...{ element, option: option.option, index }}></CustomFormCheckBox>
+                                                    return <CustomFormCheckBox {...{ element, option: option.option, index }} key={uuid()}></CustomFormCheckBox>
                                                 })
                                             }
                                         </div>
@@ -56,7 +65,7 @@ export default function formRenderer(props: pageProps) {
                                         <div className="grid grid-flow-row gap-2">
                                             {
                                                 element.elOptions && element.elOptions.map((option, index) => {
-                                                    return <CustomFormRadio {...{ element, option: option.option, index }}></CustomFormRadio>
+                                                    return <CustomFormRadio {...{ element, option: option.option, index }} key={uuid()}></CustomFormRadio>
                                                 })
                                             }
                                         </div>
@@ -119,30 +128,30 @@ export const getServerSideProps: GetServerSideProps<any, {
     formId: string,
     username: string
 }> = async (context) => {
-    const { formId, username } = context.params!
-    const token = context.req.cookies.token
-    const prisma = new PrismaClient()
-    const form = await prisma.form.findFirst({
-        where: { id: formId }, include: {
-            elements: {
-                include: {
-                    elOptions: true
+    if (context.params) {
+        const { formId, username } = context.params
+        const prisma = new PrismaClient()
+        const form = await prisma.form.findFirst({
+            where: { id: formId }, include: {
+                elements: {
+                    include: {
+                        elOptions: true
+                    }
                 }
             }
-        }
-    })
-    if (form) {
-        return {
-            props: {
-                username: username,
-                form: form,
-                formId: formId
+        })
+        if (form) {
+            return {
+                props: {
+                    username: username,
+                    form: form,
+                    formId: formId
+                }
             }
         }
     }
     return {
         props: {
-            formId: formId
 
         }
     }

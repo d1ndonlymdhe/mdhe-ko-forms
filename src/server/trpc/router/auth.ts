@@ -21,7 +21,7 @@ export const authRouter = router({
                         message: "USER_ALREADY_EXISTS"
                     }
                 } else {
-                    const newUser = await ctx.prisma.user.create({
+                    ctx.prisma.user.create({
                         data: {
                             username: username,
                             password: hash(password + salt),
