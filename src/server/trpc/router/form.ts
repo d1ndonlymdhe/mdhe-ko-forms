@@ -40,7 +40,7 @@ export const formRouter = router({
                     })
                     if (element.options.elOptions) {
                         element.options.elOptions.forEach(async option => {
-                            await ctx.prisma.elementOptions.create({
+                            const elOptions = await ctx.prisma.elementOptions.create({
                                 data: {
                                     option: option,
                                     elementId: newElement.id,
