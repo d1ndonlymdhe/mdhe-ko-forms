@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser"
 import util from "util"
-export default function App(props) {
+export default function App(props: any) {
     console.log(props)
     return <div>Testing</div>
 }
 const getBody = util.promisify(bodyParser.urlencoded());
-export const getServerSideProps = async (context) => {
+export const getServerSideProps = async (context: any) => {
     await getBody(context.req, context.res)
     if (context.params) {
         const { formId } = context.params
@@ -33,7 +33,7 @@ export const getServerSideProps = async (context) => {
     return {
         redirect: {
             permanent: false,
-            destination: `./${formId}/error`
+            destination: `/`
         }
     }
 }

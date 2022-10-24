@@ -1,4 +1,5 @@
 import { GetServerSideProps } from "next";
+import Link from "next/link";
 import Button from "../../../../components/Button";
 import TopBar from "../../../../components/Topbar";
 
@@ -16,7 +17,7 @@ export default function StatusPage(props: PageProps) {
                 <div className="grid grid-flow-row w-full h-full mx-2 my-1 items-center">
                     <span className="font-bold text-9xl text-gray-400">Form Successfully Submitted</span>
                     <div className="w-[98%] h-2 rounded-md  bg-gray-400"></div>
-                    <a href="/"><span className="font-bold text-9xl text-gray-400 hover:text-purple-400">Create your own form</span></a>
+                    <Link href="/"><a><span className="font-bold text-9xl text-gray-400 hover:text-purple-400">Create your own form</span></a></Link>
                 </div>
             </div>
         } else {
@@ -25,7 +26,7 @@ export default function StatusPage(props: PageProps) {
                 <div className="w-full h-full mx-2 my-1">
                     <span className="font-bold text-9xl text-red-400">Error While Form Submission</span>
                     <div>
-                        <a href={`/${formId}`}><Button expand={true} >Reload Form</Button></a>
+                        <Link href={`/${formId}`}><a><Button expand={true} >Reload Form</Button></a></Link>
                     </div>
                 </div>
             </div>
