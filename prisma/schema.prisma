@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider             = "mysql"
+  provider             = "sqlite"
   url                  = env("DATABASE_URL")
   referentialIntegrity = "prisma"
 }
@@ -49,6 +49,7 @@ model FormElement {
   key       String
   form      Form             @relation(fields: [formId], references: [id])
   elOptions ElementOptions[]
+  values    Value[]
 }
 
 model ElementOptions {
@@ -56,4 +57,11 @@ model ElementOptions {
   elementId String
   option    String
   element   FormElement @relation(fields: [elementId], references: [id])
+}
+
+model Value {
+  id        String      @id @default(cuid())
+  elementId String
+  element   FormElement @relation(fields: [elementId], references: [id])
+  value     String
 }

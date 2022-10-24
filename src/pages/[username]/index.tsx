@@ -22,7 +22,8 @@ export type formEl = {
 export type form = {
     title: string,
     description: string,
-    elements: formEl[]
+    elements: formEl[],
+    id: string
 }
 
 type PageProps = {
@@ -65,7 +66,7 @@ export default function Dashboard(pageProps: PageProps) {
                                                 <p className="text-5xl font-bold px-4 py-2">{form.title}</p>
                                                 <p className="text-3xl px-4 py-2">{form.description}</p>
                                             </div>
-                                            <FormControls></FormControls>
+                                            <FormControls {...{ username, formId: form.id }}></FormControls>
                                         </div>
                                     })}
                                     <div className="h-fit bg-purple-400 pt-1 grid gap-2 rounded-md">
@@ -112,11 +113,15 @@ export default function Dashboard(pageProps: PageProps) {
     </>
 }
 
-
-function FormControls() {
+type FormControlsProps = {
+    username: string,
+    formId: string
+}
+function FormControls(props: FormControlsProps) {
+    const { username, formId } = props;
     const parentRef = useRef<HTMLDivElement>(null)
     return <div ref={parentRef} className="formActions grid grid-flow-col gap-x-2 px-4 py-2 bg-slate-600 rounded-b-md ">
-        <Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><PencilIcon className="h-10 w-10"></PencilIcon></Button>
+        <Link href={`/${username}/${formId}`}><a target="_blank"><Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><PencilIcon className="h-10 w-10"></PencilIcon></Button></a></Link>
         <Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><LinkIcon className="h-10 w-10"></LinkIcon></Button>
         <Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><TrashIcon className="h-10 w-10"></TrashIcon></Button>
         <Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><TableCellsIcon className="h-10 w-10"></TableCellsIcon></Button>

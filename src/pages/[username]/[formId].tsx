@@ -39,14 +39,14 @@ export default function formRenderer(props: pageProps) {
                         <h2>{form.description}</h2>
                     </div>
                 </Wrapper>
-                <form className="grid grid-flow-row gap-y-2">
+                <form className="grid grid-flow-row gap-y-2" method="POST" target="_blank" action={`/formhandler/${form.id}`}>
                     <Wrapper className="gap-y-4">
                         {
                             form.elements.map(element => {
                                 if (element.type == "Text") {
                                     return <div className="grid grid-flow-row gap-2" key={uuid()}>
                                         <label htmlFor={element.name} className="sm:text-3xl text-xl font-bold">{element.label}</label>
-                                        <Input id={element.name} type="text" defaultValue={element.default || ""} required={element.required}></Input>
+                                        <Input id={element.name} type="text" defaultValue={element.default || ""} required={element.required} name={element.name}></Input>
                                     </div>
                                 } else if (element.type == "Checkbox") {
                                     return <div className="grid grid-flow-row" key={uuid()}>
