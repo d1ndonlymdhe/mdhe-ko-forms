@@ -36,6 +36,7 @@ model Form {
   description String
   owner       User          @relation(fields: [ownerId], references: [id])
   elements    FormElement[]
+  entries     Int           @default(0)
 }
 
 model FormElement {

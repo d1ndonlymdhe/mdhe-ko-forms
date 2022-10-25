@@ -39,7 +39,7 @@ export default function formRenderer(props: pageProps) {
                         <h2>{form.description}</h2>
                     </div>
                 </Wrapper>
-                <form className="grid grid-flow-row gap-y-2" method="POST" target="_blank" action={`/formhandler/${form.id}`}>
+                <form className="grid grid-flow-row gap-y-2 sm:w-[50vw] " method="POST" target="_blank" action={`/formhandler/${form.id}`}>
                     <Wrapper className="gap-y-4">
                         {
                             form.elements.map(element => {
@@ -117,7 +117,7 @@ function CustomFormRadio(props: CustomFormCheckBoxProps) {
     const { element, option, index } = props
     const [checked, setChecked] = useState(element.default === option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
-        <input id={`${option}_${index}`} type="checkbox" name={element.name} value={option} checked={checked} onChange={() => {
+        <input id={`${option}_${index}`} type="radio" name={element.name} required={element.required} value={option} checked={checked} onChange={() => {
             setChecked(!checked)
         }}></input>
         <label htmlFor={`${option}_${index}`}>{option}</label>
@@ -137,10 +137,11 @@ export const getServerSideProps: GetServerSideProps<any, {
                     include: {
                         elOptions: true
                     }
-                }
+                },
+                owner: true
             }
         })
-        if (form) {
+        if (form && form.owner.username == username) {
             return {
                 props: {
                     username: username,

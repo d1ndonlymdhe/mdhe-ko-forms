@@ -14,6 +14,16 @@ export const getServerSideProps = async (context: any) => {
         const form = await prisma.form.findFirst({ where: { id: formId }, include: { elements: true } })
         const formData = context.req.body
         if (form) {
+            await prisma.form.update({
+                where: {
+                    id: formId
+                },
+                data: {
+                    entries: {
+                        increment: 1
+                    }
+                }
+            })
             form.elements.forEach(async element => {
                 const currentValue = await prisma.value.create({
                     data: {

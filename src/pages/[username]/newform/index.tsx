@@ -498,6 +498,7 @@ function FormElOptionsControl(props: formElOptionsControlsProps) {
 }
 
 function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
+    //TODO need to add feature for adding multiple default values
     const { element, option, formState, setFormState, index } = props
     const [checked, setChecked] = useState(element.options.defaultValue == option)
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">

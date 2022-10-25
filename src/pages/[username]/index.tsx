@@ -9,6 +9,10 @@ import userFromToken from "../../utils/userFromToken";
 // import { formEl } from "./newform";
 import Head from "next/head";
 import uuid from "react-uuid";
+export type value = {
+    value: string
+}
+
 export type formEl = {
     type: string,
     name: string,
@@ -17,13 +21,15 @@ export type formEl = {
     required?: boolean
     elOptions: {
         option: string
-    }[]
+    }[],
+    values: value[]
 }
 export type form = {
     title: string,
     description: string,
     elements: formEl[],
-    id: string
+    id: string,
+    entries: number
 }
 
 type PageProps = {
