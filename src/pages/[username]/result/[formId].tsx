@@ -1,7 +1,7 @@
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon, ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { PrismaClient } from "@prisma/client";
 import { GetServerSideProps } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import uuid from "react-uuid";
 import { form, formEl } from "..";
 import Button from "../../../components/Button";
@@ -9,36 +9,41 @@ import Input from "../../../components/Input";
 import TopBar from "../../../components/Topbar";
 import Wrapper from "../../../components/Wrapper";
 import userFromToken from "../../../utils/userFromToken";
+import Papa from "papaparse"
+import Link from "next/link";
 type PageProps = {
     formData?: form,
     error?: string,
 }
 
-// export default function FormResults(props: PageProps) {
-//     const { formData, error } = props;
-//     if (error) {
-//         if (error == "NO_AUTH") {
-//             return <div>You are not authorized to view this content</div>
-//         } else {
-//             return <div>An error occured</div>
-//         }
-//     }
-//     if (formData) {
-//         return <div className="mx-2 grid grid-rows-[1fr_9fr]">
-//             <TopBar></TopBar>
-
-//         </div>
-//     }
-// }
-
-
 
 //expand here
 export default function FormResults(props: PageProps) {
-    console.log(props)
     const { formData: form, error } = props
     const [formIndex, setFormIndex] = useState(0);
-    console.log(form)
+    const [csvURL, setCsvURL] = useState("")
+    useEffect(() => {
+        console.log("using effect")
+        console.log(form)
+        if (form) {
+            const names: string[] = []
+            const data: string[][] = []
+            const elements = form.elements
+            elements.forEach(element => {
+                names.push(element.name);
+                const values: string[] = []
+                element.values.forEach(value => {
+                    values.push(JSON.parse(value.value))
+                })
+                data.push(values)
+            })
+            const csvString = Papa.unparse({ fields: names, data: transpose(data) })
+            const blob = new Blob([csvString], { type: "text/csv" })
+            const url = URL.createObjectURL(blob)
+            console.log("url = ", url)
+            setCsvURL(url)
+        }
+    }, [])
     if (!form) {
         return <div className="grid grid-rows-[1fr_9fr]">
             <TopBar></TopBar>
@@ -57,7 +62,7 @@ export default function FormResults(props: PageProps) {
     return <div className="grid grid-rows-[1fr_auto_auto] gap-2 bg-slate-500">
         <TopBar></TopBar>
         <div className="grid justify-center mx-2 mb-2 gap-y-2">
-            <Wrapper className="grid grid-flow-col justify-center gap-x-2">
+            <Wrapper className="grid grid-flow-col justify-center gap-x-2 items-center">
                 <Button onClick={(e) => {
                     if (formIndex > 0) {
                         setFormIndex(formIndex - 1)
@@ -69,6 +74,11 @@ export default function FormResults(props: PageProps) {
                         setFormIndex(formIndex + 1)
                     }
                 }}><ArrowRightIcon className="w-6 h-6"></ArrowRightIcon></Button>
+                {csvURL !== "" &&
+                    <a download={"result.csv"} href={csvURL}>
+                        <Button><ArrowDownTrayIcon className="w-6 h-6"></ArrowDownTrayIcon></Button>
+                    </a>
+                }
             </Wrapper>
             <div className="grid grid-flow-row gap-y-2">
                 <Wrapper className="">
@@ -223,4 +233,24 @@ export const getServerSideProps: GetServerSideProps<any, {
             error: "NO_AUTH"
         }
     }
+}
+function transpose<T>(arr: T[][]) {
+    const retArr: T[][] = [];
+    const A = arr[0]
+    if (A) {
+        for (let i = 0; i < A.length; i++) {
+            const tempArr: T[] = []
+            for (let j = 0; j < arr.length; j++) {
+                const B = arr[j]
+                if (B) {
+                    const C = B[i]
+                    if (C) {
+                        tempArr.push(C)
+                    }
+                }
+            }
+            retArr.push(tempArr)
+        }
+    }
+    return retArr
 }
