@@ -48,7 +48,7 @@ model FormElement {
   default   String?
   required  Boolean?
   key       String
-  form      Form             @relation(fields: [formId], references: [id])
+  form      Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
   elOptions ElementOptions[]
   values    Value[]
 }
@@ -57,12 +57,12 @@ model ElementOptions {
   id        String      @id @default(cuid())
   elementId String
   option    String
-  element   FormElement @relation(fields: [elementId], references: [id])
+  element   FormElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
 }
 
 model Value {
   id        String      @id @default(cuid())
   elementId String
-  element   FormElement @relation(fields: [elementId], references: [id])
+  element   FormElement @relation(fields: [elementId], references: [id], onDelete: Cascade)
   value     String
 }

@@ -1,6 +1,7 @@
 import { router, publicProcedure } from "../trpc"
 import { z } from "zod"
 import userFromToken from "../../../utils/userFromToken"
+import { PrismaClient } from "@prisma/client"
 const formOptions = z.object({
     name: z.string(),
     elOptions: z.array(z.string()).optional(),
@@ -71,5 +72,31 @@ export const formRouter = router({
                 }
             }
         }
+    })
+    ,
+    deleteForm: publicProcedure.input(z.object({ formId: z.string() })).mutation(async ({ input, ctx }) => {
+        const token = ctx.req.cookies.token
+        const user = await userFromToken(token);
+        if (user) {
+            const prisma = new PrismaClient()
+            const formId = input.formId
+            const form = await prisma.form.delete({ where: { id: formId } })
+            if (form) {
+                return {
+                    status: "success"
+                }
+            } else {
+                return {
+                    status: "error",
+                    message: "NO_FORM"
+                }
+            }
+        } else {
+            return {
+                status: "error",
+                message: "NO_AUTH"
+            }
+        }
+
     })
 })
