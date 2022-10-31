@@ -105,7 +105,7 @@ type CustomFormCheckBoxProps = {
 }
 function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
     const { element, option, index } = props
-    const [checked, setChecked] = useState(element.default === option)
+    const [checked, setChecked] = useState(JSON.parse(element.default || "[]").includes(option))
     return <div key={uuid()} className="grid grid-cols-[1fr_9fr] gap-2">
         <input id={`${option}_${index}`} type="checkbox" name={element.name} value={option} checked={checked} onChange={() => {
             setChecked(!checked)

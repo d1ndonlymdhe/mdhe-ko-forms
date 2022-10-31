@@ -187,6 +187,8 @@ type CheckBoxElementOptionsProps = TextElementOptionsProps & {
 function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
     const { setElementOptions, elementOptions, currentlyEditingElExtraOptions, setCurrentlyEditingElExtraOptions } = props;
     const checkBoxOptionsRef = useRef<HTMLInputElement>(null)
+    const defaultValueRef = useRef<HTMLInputElement>(null)
+    const [deafaultValues, setDefaultValues] = useState<string[]>([])
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
@@ -199,10 +201,20 @@ function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
         }} required={true}></Input>
 
         <label htmlFor="defaultValue">Default Value:</label>
-        <Input id="defaultValue" type="text" onChange={(e) => {
-            setElementOptions({ ...elementOptions, defaultValue: e.target.value })
-        }}></Input>
-
+        <div className="grid grid-flow-col gap-2">
+            <Input id="defaultValue" type="text" ref={defaultValueRef}></Input>
+            <Button onClick={() => {
+                if (defaultValueRef.current) {
+                    const value = defaultValueRef.current.value;
+                    if (value && value !== "") {
+                        setDefaultValues([...deafaultValues, value])
+                        setElementOptions({ ...elementOptions, defaultValue: JSON.stringify(deafaultValues) })
+                        defaultValueRef.current.value = ""
+                        defaultValueRef.current.focus()
+                    }
+                }
+            }} type={"button"}>Add Default Value</Button>
+        </div>
         <label htmlFor="checkBoxOptions">Add Options:</label>
         <div className="grid grid-flow-col gap-2">
             <Input id="checkBoxOptions" type="text" ref={checkBoxOptionsRef}></Input>
@@ -218,15 +230,6 @@ function CheckBoxElementOptions(props: CheckBoxElementOptionsProps) {
                 }
             }} type="button" >Add Option</Button>
         </div>
-
-        <div className="grid grid-cols-[1fr_9fr]">
-            <input className="hover:scale-110 duration-100" id="inputRequired" type={"checkbox"} name="inputRequired" value="true" onChange={(e) => {
-                if (e.target.value == "true") {
-                    setElementOptions({ ...elementOptions, required: true })
-                }
-            }}></input>
-            <label htmlFor="inputRequired">Required</label>
-        </div>
     </div>
 }
 function RadioElementOptions(props: CheckBoxElementOptionsProps) {
@@ -235,7 +238,6 @@ function RadioElementOptions(props: CheckBoxElementOptionsProps) {
     return <div className="grid grid-flow-row gap-2">
         <label htmlFor="Name">Name:{"(used in the backend not visible to users)"}</label>
         <Input id="Name" type="text" onChange={(e) => {
-            // changeOptions({ name: e?.target.value })
             setElementOptions({ ...elementOptions, name: e.target.value })
         }} required={true}></Input>
 
@@ -266,7 +268,6 @@ function RadioElementOptions(props: CheckBoxElementOptionsProps) {
 }
 function DropDownElementOptions(props: CheckBoxElementOptionsProps) {
     const { setElementOptions, elementOptions, setCurrentlyEditingElExtraOptions, currentlyEditingElExtraOptions } = props;
-    const [editBox, setEditBox] = useState(false)
     const dropDownOptionsRef = useRef<HTMLInputElement>(null)
     return <div className="grid grid-flow-row gap-2">
 
@@ -458,7 +459,6 @@ function FormDemo(props: FormDemoProps) {
         const { element: propElement, formState, setFormState } = props;
         const [element, setElement] = useState(propElement);
         const newOptionRef = useRef<HTMLInputElement>(null)
-
         return <>
             <div className="grid grid-flow-col gap-2 items-center justify-start">
                 <legend className="sm:text-3xl text-xl font-bold">{element.options.label}</legend>
@@ -654,9 +654,8 @@ function FormElOptionsControl(props: formElOptionsControlsProps) {
 }
 
 function CustomFormCheckBox(props: CustomFormCheckBoxProps) {
-    //TODO need to add feature for adding multiple default values
     const { element, option, formState, setFormState, index } = props
-    const [checked, setChecked] = useState(element.options.defaultValue == option)
+    const [checked, setChecked] = useState(JSON.parse(element.options.defaultValue || "[]").includes(option))
     return <div key={uuid()} className="grid grid-cols-[1fr_8fr_1fr] gap-2">
         <input id={`${option}_${index}`} type={"checkbox"} name={element.options.name} value={option} checked={checked} onChange={() => {
             setChecked(!checked)

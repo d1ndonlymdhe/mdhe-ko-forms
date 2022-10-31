@@ -192,12 +192,11 @@ function FormControls(props: FormControlsProps) {
                     </Button>
                 </div>
             </ModalWithBackdrop>}
-        <div ref={parentRef} className="formActions grid grid-flow-col gap-x-2 px-4 py-2 bg-slate-600 rounded-b-md ">
-            <Link href={`./${username}/${formId}/edit`}><a target="_blank"><Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><PencilIcon className="h-10 w-10"></PencilIcon></Button></a></Link>
+        <div ref={parentRef} className="formActions grid grid-flow-col gap-x-2 px-4 py-2 bg-slate-600 rounded-b-md justify-center">
             <Link href={`./${username}/${formId}`}><a target={"_blank"}><Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><ArrowTopRightOnSquareIcon className="h-10 w-10"></ArrowTopRightOnSquareIcon></Button></a></Link>
             <Button onClick={() => {
                 setDeleteWarning(true)
-            }} expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><TrashIcon className="h-10 w-10"></TrashIcon></Button>
+            }} expand={true} className="group  group-hover:scale-75 grid justify-center px-5 py-2"><TrashIcon className="h-10 w-10"></TrashIcon></Button>
             <Link href={`./${username}/result/${formId}`}><a target="_blank"><Button expand={true} className="group group-hover:scale-75 grid justify-center px-5 py-2"><TableCellsIcon className="h-10 w-10"></TableCellsIcon></Button></a></Link>
         </div></>
 }
