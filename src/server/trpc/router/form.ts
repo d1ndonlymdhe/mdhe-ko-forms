@@ -28,6 +28,7 @@ export const formRouter = router({
             if (user) {
                 const newForm = await ctx.prisma.form.create({ data: { ownerId: user.id, title: input.title, description: input.description } })
                 input.elements.forEach(async element => {
+                    console.log("writing elements")
                     const newElement = await ctx.prisma.formElement.create({
                         data: {
                             type: element.type,
