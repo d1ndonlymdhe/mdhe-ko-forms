@@ -27,8 +27,8 @@ export const formRouter = router({
             const user = await userFromToken(token)
             if (user) {
                 const newForm = await ctx.prisma.form.create({ data: { ownerId: user.id, title: input.title, description: input.description } })
+                let elementCount = 0;
                 input.elements.forEach(async element => {
-                    console.log("writing elements")
                     const newElement = await ctx.prisma.formElement.create({
                         data: {
                             type: element.type,
@@ -40,6 +40,7 @@ export const formRouter = router({
                             required: element.options.required
                         }
                     })
+                    elementCount++;
                     if (element.options.elOptions) {
                         element.options.elOptions.forEach(async option => {
                             const elOptions = await ctx.prisma.elementOptions.create({
@@ -56,7 +57,8 @@ export const formRouter = router({
                     status: "success",
                     data: {
                         formId: newForm.id,
-                        form: form
+                        form: form,
+                        elementCount: elementCount
                     }
                 }
             } else {
