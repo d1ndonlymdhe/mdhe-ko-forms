@@ -50,10 +50,12 @@ export const formRouter = router({
                         })
                     }
                 })
+                const form = await ctx.prisma.form.findFirst({ where: { id: newForm.id } })
                 return {
                     status: "success",
                     data: {
-                        formId: newForm.id
+                        formId: newForm.id,
+                        form: form
                     }
                 }
             } else {
